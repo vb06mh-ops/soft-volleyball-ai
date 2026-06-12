@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ソフトバレー競技力研究所 - Performance OS</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --primary:#552583;--primary-dark:#2e1444;--accent:#FDB927;--accent2:#2ecc71;
+  --danger:#e74c3c;--warn:#f39c12;--bg:#f4eefb;--card:#fff;--text:#211433;
+  --muted:#6b6275;--border:#e4d6f5;--grad:linear-gradient(135deg,#552583,#2e1444);
+  --gold-grad:linear-gradient(135deg,#FDB927,#f5a623);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Hiragino Kaku Gothic Pro','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
+header{background:var(--grad);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px rgba(0,0,0,.3)}
+header .logo{font-size:24px}
+header h1{font-size:15px;font-weight:700;line-height:1.2}
+header span{font-size:10px;color:#aac4e0}
+.back-btn{margin-left:auto;background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
+.container{max-width:720px;margin:0 auto;padding:18px 14px 90px}
+.card{background:var(--card);border-radius:16px;padding:22px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);border:1px solid var(--border)}
+.section-title{font-size:14px;font-weight:700;color:var(--primary);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:15px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.form-label .req{color:var(--danger);margin-left:2px}
+.form-control{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:#fafcff;-webkit-appearance:none}
+.form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(85,37,131,.1)}
+textarea.form-control{min-height:72px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.range-wrap{display:flex;align-items:center;gap:12px}
+.range-wrap input[type=range]{flex:1}
+.range-val{min-width:42px;text-align:center;font-weight:800;color:var(--primary);font-size:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:all .2s;font-family:inherit;width:100%}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:active{transform:scale(.98)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+.btn:disabled{opacity:.5}
+.hidden{display:none!important}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== ダッシュボード ===== */
+.hero{background:var(--grad);border-radius:20px;padding:26px 22px;color:#fff;margin-bottom:18px;position:relative;overflow:hidden}
+.hero::after{content:'🏐';position:absolute;right:-10px;bottom:-20px;font-size:120px;opacity:.07}
+.hero h2{font-size:23px;margin-bottom:8px;line-height:1.35;font-weight:800}
+.hero .gold{color:var(--accent)}
+.hero p{font-size:13px;color:#aac4e0;line-height:1.6}
+.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.module-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.module-card:active{transform:scale(.97)}
+.module-card .m-icon{font-size:30px;margin-bottom:10px;display:block}
+.module-card .m-title{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.module-card .m-desc{font-size:12px;color:var(--muted);line-height:1.45}
+.module-card .m-time{font-size:10px;color:var(--accent);font-weight:700;margin-top:6px;display:block}
+.module-card .m-badge{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px}
+.module-card.featured{grid-column:1/-1;background:linear-gradient(135deg,#fff,#f6eeff);border:2px solid var(--primary)}
+.module-card.featured .m-icon{font-size:34px}
+.module-card .accent-bar{position:absolute;left:0;top:0;bottom:0;width:4px}
+
+/* ===== ローディング ===== */
+.loading{display:flex;flex-direction:column;align-items:center;padding:70px 20px;text-align:center}
+.spinner{width:58px;height:58px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:18px}
+.loading-text{font-size:16px;font-weight:700;color:var(--primary)}
+.loading-sub{font-size:13px;color:var(--muted);margin-top:8px}
+
+/* ===== 結果共通 ===== */
+.result-hero{background:var(--grad);border-radius:20px;padding:28px 22px;text-align:center;color:#fff;margin-bottom:14px;position:relative;overflow:hidden}
+.big-score{font-size:72px;font-weight:900;line-height:1;color:var(--accent)}
+.score-cap{font-size:13px;color:#aac4e0}
+.type-pill{display:inline-block;background:rgba(253,185,39,.22);color:var(--accent);border:1px solid var(--accent);padding:6px 18px;border-radius:20px;font-size:14px;font-weight:700;margin-top:12px}
+.chart-wrap{position:relative;height:300px;max-width:320px;margin:0 auto}
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.score-item{background:#faf6ff;border:1px solid var(--border);border-radius:12px;padding:13px}
+.score-item-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.score-item-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.score-item-fill{height:100%;border-radius:3px;transition:width 1s ease;width:0}
+.score-item-value{font-size:18px;font-weight:800}
+.insight-list{list-style:none}
+.insight-list li{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+.insight-list li:last-child{border:none}
+.insight-list .ic{font-size:15px;flex-shrink:0;margin-top:1px}
+.box{border-radius:12px;padding:16px;font-size:14px;line-height:1.7}
+.box-warn{background:#fff8f0;border:2px solid var(--accent)}
+.box-good{background:#f0fff4;border:2px solid var(--accent2)}
+.box-info{background:#f0f8ff;border:2px solid #b3d7f0}
+.box-danger{background:#fff0f0;border:2px solid var(--danger)}
+.plan-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.plan-item:last-child{border:none}
+.plan-num{width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.plan-text{font-size:14px;line-height:1.6}
+.tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:2px solid var(--border);overflow-x:auto}
+.tab-btn{padding:10px 14px;font-size:13px;font-weight:600;background:none;border:none;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-family:inherit}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.compare-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.compare-label{font-size:12px;color:var(--muted);min-width:66px}
+.compare-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.compare-fill{height:100%;border-radius:4px;width:0;transition:width 1s}
+.compare-val{font-size:13px;font-weight:700;min-width:34px;text-align:right}
+/* 因子バー */
+.factor{margin-bottom:14px}
+.factor-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.factor-name{font-weight:700}
+.factor-impact{font-size:11px;color:var(--muted)}
+.factor-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+.factor-fill{height:100%;border-radius:5px;width:0;transition:width 1s}
+.factor-desc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}
+/* 身体パーツ */
+.bodypart{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.bodypart:last-child{border:none}
+.bp-gauge{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+.bp-info{flex:1}
+.bp-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+.bp-risk{font-size:11px;padding:2px 8px;border-radius:6px;color:#fff;font-weight:700}
+.bp-reason{font-size:12px;color:var(--muted);margin:5px 0;line-height:1.5}
+.bp-prev{font-size:12px;line-height:1.6}
+.bp-prev b{color:var(--primary)}
+/* 星評価 */
+.stars{color:var(--accent);letter-spacing:2px;font-size:15px}
+.star-empty{color:var(--border)}
+/* チャット */
+.chat-container{display:flex;flex-direction:column;gap:12px;max-height:380px;overflow-y:auto;padding-right:4px}
+.chat-msg{display:flex;gap:10px;align-items:flex-start}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--bg)}
+.chat-bubble{max-width:80%;padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.6}
+.chat-msg.ai .chat-bubble{background:#fff;border:1px solid var(--border);border-top-left-radius:4px}
+.chat-msg.user .chat-bubble{background:var(--primary);color:#fff;border-top-right-radius:4px}
+.chat-input-row{display:flex;gap:8px;margin-top:12px}
+.chat-input{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:none}
+.chat-input:focus{outline:none;border-color:var(--primary)}
+.chat-send{width:44px;height:44px;background:var(--primary);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:18px;flex-shrink:0}
+/* 日誌 */
+.journal-table{width:100%;border-collapse:collapse;font-size:12px}
+.journal-table th{background:#f5f9ff;padding:8px 6px;text-align:center;color:var(--muted);font-size:11px;border-bottom:2px solid var(--border)}
+.journal-table td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--border)}
+.journal-table tr:last-child td{border:none}
+.empty-note{text-align:center;color:var(--muted);font-size:13px;padding:30px 10px}
+.step-nav{display:flex;gap:4px;margin-bottom:18px}
+.step-dot{flex:1;height:4px;border-radius:2px;background:var(--border)}
+.step-dot.active{background:var(--primary)}
+.step-dot.done{background:var(--accent)}
+/* ===== パーソナルホーム ===== */
+.status-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.greet{font-size:14px;color:var(--muted);font-weight:600}
+.greet b{color:var(--primary)}
+.status-row{display:flex;gap:10px;margin-top:14px}
+.stat{flex:1;background:#faf6ff;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.stat-val{font-size:24px;font-weight:900;color:var(--primary);line-height:1.1}
+.stat-val .delta{font-size:12px;font-weight:700;margin-left:2px}
+.stat-label{font-size:10px;color:var(--muted);margin-top:4px}
+.up{color:#2ecc71}.down{color:var(--danger)}
+.flame{color:var(--accent)}
+.mission-card{background:var(--grad);color:#fff;border-radius:16px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+.mission-card h3{font-size:16px;margin-bottom:4px}
+.mission-card .sub{font-size:11px;color:#e8d9f5;margin-bottom:14px;line-height:1.5}
+.mission-item{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.1);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.mission-item:active{transform:scale(.98)}
+.mission-item.done{background:rgba(253,185,39,.22)}
+.mission-check{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.5);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;transition:all .2s}
+.mission-item.done .mission-check{background:var(--accent);border-color:var(--accent);color:var(--primary-dark)}
+.mission-text{font-size:14px;line-height:1.4;flex:1}
+.mission-item.done .mission-text{text-decoration:line-through;opacity:.75}
+.mission-empty{font-size:13px;line-height:1.7;color:#efe4fb}
+.mini-btn{background:var(--accent);color:var(--primary-dark);border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:10px}
+.section-link{background:none;border:none;color:var(--primary);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;padding:6px 0}
+.growth-score{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gscore{background:#faf6ff;border:1px solid var(--border);border-radius:12px;padding:12px}
+.gscore .g-mod{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;line-height:1.3}
+.gscore .g-val{font-size:24px;font-weight:800;color:var(--primary);margin-top:6px}
+.gscore .g-date{font-size:10px;color:var(--muted);margin-top:2px}
+.hist-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px}
+.hist-item:last-child{border:none}
+.hist-icon{font-size:20px}
+.hist-mod{flex:1;line-height:1.3}
+.hist-score{font-weight:800;color:var(--primary);font-size:18px}
+.hist-date{font-size:11px;color:var(--muted)}
+@media(max-width:480px){
+  .form-row3{grid-template-columns:1fr 1fr}
+  .score-grid{grid-template-columns:1fr}
+  .big-score{font-size:60px}
+  .module-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">🏐</span>
+  <div>
+    <h1>ソフトバレー競技力研究所</h1>
+    <span>Soft Volleyball Performance OS</span>
+  </div>
+  <button class="back-btn hidden" id="backBtn" onclick="goHome()">← ホーム</button>
+</header>
+
+<div id="keyBanner" class="hidden" style="background:#fff0f0;border-bottom:2px solid var(--danger);color:#a01818;padding:12px 16px;font-size:13px;line-height:1.6;text-align:center">
+  ⚠️ <b>APIキーが未設定のため診断できません。</b><br>
+  Google AI Studio の<b>無料</b>APIキーを <code style="background:#ffd9d9;padding:1px 5px;border-radius:4px">api_key.txt</code> に保存してサーバーを再起動してください（料金は一切かかりません）。
+</div>
+
+<div class="container">
+
+  <!-- ============ ダッシュボード ============ -->
+  <div id="dashboard" class="fade-in">
+    <div class="hero" id="marketingHero">
+      <h2>その不調、<br><span class="gold">技術のせいじゃない</span>かも。</h2>
+      <p>ジャンプ・試合・疲れ…伸び悩みの「本当の原因」をAIが分析。<br>あなたに必要な"次の一歩"が、5分で見つかります。</p>
+    </div>
+    <div id="homeStatus"></div>
+    <div style="font-size:13px;font-weight:700;color:var(--muted);margin:6px 2px 10px">🔍 分析メニュー</div>
+    <div class="module-grid" id="moduleGrid"></div>
+  </div>
+
+  <!-- ============ フォーム描画先 ============ -->
+  <div id="formView" class="hidden"></div>
+
+  <!-- ============ ローディング ============ -->
+  <div id="loadingView" class="hidden">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingTitle">AIが分析中...</div>
+      <div class="loading-sub" id="loadingMsg">根本原因を多角的に評価しています</div>
+    </div>
+  </div>
+
+  <!-- ============ 結果描画先 ============ -->
+  <div id="resultView" class="hidden"></div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  モジュール定義
+// ════════════════════════════════════════════
+// どこから開いてもAPIサーバーに届くようにする
+// ・ネット公開(Render等)や localhost:8080 → 同じサーバーへ
+// ・プレビューパネルやファイル直接開き → ローカルの8080へ
+const API=(location.protocol==='file:'||((location.hostname==='localhost'||location.hostname==='127.0.0.1')&&location.port!=='8080'))?'http://localhost:8080':'';
+const MODULES = {
+  diagnose:{icon:'🔬',title:'競技力総合診断',desc:'まず全体像を知りたい人へ。8項目を総合評価',color:'#552583',featured:true,time:'約5分'},
+  fatigue:{icon:'😴',title:'疲労・回復分析',desc:'最近ずっと調子が出ない人へ',color:'#2ecc71',time:'約2分'},
+  jump:{icon:'⬆️',title:'ジャンプ力分析',desc:'跳べない"本当の原因"を特定',color:'#e74c3c',time:'約2分'},
+  match:{icon:'🎯',title:'試合パフォーマンス',desc:'練習はできるのに本番で…',color:'#9b59b6',time:'約2分'},
+  injury:{icon:'🩺',title:'怪我リスク分析',desc:'膝/足首/腰/肩を部位別に評価',color:'#e67e22',time:'約2分'},
+  longevity:{icon:'♾️',title:'競技寿命分析',desc:'長く続けたい人へ。5年/10年後を予測',color:'#FDB927',time:'約2分'},
+  training:{icon:'📐',title:'練習設計分析',desc:'頑張ってるのに伸びない人へ',color:'#3498db',time:'約2分'},
+  shoes:{icon:'👟',title:'シューズ分析',desc:'自分に合う1足の選び方',color:'#f39c12',time:'約2分'},
+  type:{icon:'🧬',title:'競技タイプ診断',desc:'あなたの武器を言語化',color:'#8e44ad',time:'約2分'},
+  winrate:{icon:'🏆',title:'勝率向上システム',desc:'勝つための優先課題を明確化',color:'#c0392b',time:'約2分'},
+  journal:{icon:'📔',title:'AI競技日誌',desc:'毎日の記録でコンディションを可視化',color:'#552583',time:'毎日'}
+};
+
+// ════════════════════════════════════════════
+//  フォーム定義 (各モジュールの入力項目)
+// ════════════════════════════════════════════
+const NUM='number',SEL='select',TXT='textarea',RNG='range';
+function opt(...a){return a.map(v=>({v,t:v}))}
+
+const FORMS = {
+  diagnose:{steps:[
+    {title:'👤 基本情報',fields:[
+      {id:'age',label:'年齢',type:NUM,ph:'42',req:1,half:1},
+      {id:'gender',label:'性別',type:SEL,opts:opt('男性','女性'),req:1,half:1},
+      {id:'height',label:'身長(cm)',type:NUM,ph:'172',third:1},
+      {id:'weight',label:'体重(kg)',type:NUM,ph:'68',third:1},
+      {id:'body_fat',label:'体脂肪率(%)',type:NUM,ph:'18',third:1},
+      {id:'weight_change',label:'体重変動',type:SEL,opts:opt('3ヶ月で2kg以上増','ほぼ変化なし','3ヶ月で2kg以上減')},
+    ]},
+    {title:'🏐 競技情報',fields:[
+      {id:'career',label:'ソフトバレー競技歴',type:SEL,opts:opt('未経験','1年未満','1〜2年','3〜5年','5〜10年','10年以上')},
+      {id:'practice_days',label:'週練習回数',type:SEL,opts:opt('週1','週2','週3','週4以上'),third:1},
+      {id:'practice_hours',label:'練習時間',type:SEL,opts:opt('1h以内','1〜2h','2〜3h','3h以上'),third:1},
+      {id:'match_frequency',label:'月試合数',type:SEL,opts:opt('なし','月1','月2〜3','月4以上'),third:1},
+      {id:'goal',label:'目標',type:SEL,opts:opt('健康維持・楽しむ','チーム貢献','市区町村大会上位','都道府県大会上位','全国大会出場','全国優勝'),req:1},
+      {id:'concern',label:'現在の悩み',type:TXT,ph:'例:サーブレシーブが安定しない、試合後半に疲れる...',req:1},
+    ]},
+    {title:'😴 生活・回復',fields:[
+      {id:'job_type',label:'仕事の種類',type:SEL,opts:opt('デスクワーク','立ち仕事','肉体労働','不規則勤務','主婦/主夫','学生','無職/引退'),half:1},
+      {id:'work_hours',label:'勤務時間',type:SEL,opts:opt('4h未満','4〜8h','8〜10h','10h以上'),half:1},
+      {id:'sleep_hours',label:'睡眠時間',type:SEL,opts:opt('5h未満','5〜6h','6〜7h','7〜8h','8h以上'),req:1,third:1},
+      {id:'sleep_quality',label:'睡眠の質',type:SEL,opts:opt('ぐっすり','まあまあ','あまり','全然'),third:1},
+      {id:'nap',label:'昼寝',type:SEL,opts:opt('ほぼ毎日','週数回','ほぼ無し'),third:1},
+      {id:'diet',label:'食事',type:SEL,opts:opt('バランス良く3食','3食だが偏り','朝食抜き多い','不規則','栄養管理してる')},
+      {id:'supplements',label:'サプリ',type:SEL,opts:opt('なし','プロテインのみ','プロテイン+α','総合ビタミン','複数積極利用')},
+    ]},
+    {title:'💪 フィジカル・健康',fields:[
+      {id:'weight_training',label:'ウェイト頻度',type:SEL,opts:opt('なし','月1〜2','週1','週2〜3','週4以上'),half:1},
+      {id:'vertical_jump',label:'垂直跳び(cm)',type:NUM,ph:'45',half:1},
+      {id:'squat',label:'スクワット(kg)',type:NUM,ph:'任意',third:1},
+      {id:'deadlift',label:'デッドリフト(kg)',type:NUM,ph:'任意',third:1},
+      {id:'bench',label:'ベンチ(kg)',type:NUM,ph:'任意',third:1},
+      {id:'reach',label:'最高到達点(cm)',type:NUM,ph:'285'},
+      {id:'injuries',label:'既往歴・痛み',type:TXT,ph:'例:右膝半月板(完治)、腰痛が時々...特になし'},
+    ]},
+  ]},
+
+  fatigue:{steps:[{title:'😴 疲労・回復チェック',fields:[
+    {id:'sleep_hours',label:'昨夜の睡眠時間',type:SEL,opts:opt('5h未満','5〜6h','6〜7h','7〜8h','8h以上'),req:1,half:1},
+    {id:'sleep_satisfaction',label:'睡眠満足度',type:SEL,opts:opt('熟睡できた','まあまあ','浅かった','ほぼ眠れず'),half:1},
+    {id:'nap_time',label:'昼寝時間(分)',type:NUM,ph:'0',half:1},
+    {id:'practice_days_week',label:'今週の練習日数',type:NUM,ph:'3',half:1},
+    {id:'practice_load',label:'昨日の練習量',type:SEL,opts:opt('なし','軽め','普通','ハード','超ハード')},
+    {id:'work_load',label:'仕事量・負担',type:SEL,opts:opt('軽い','普通','忙しい','過酷')},
+    {id:'fatigue_level',label:'全身の疲労感',type:RNG,min:0,max:10,def:5},
+    {id:'muscle_soreness',label:'筋肉痛の強さ',type:RNG,min:0,max:10,def:3},
+    {id:'stress_level',label:'精神的ストレス',type:RNG,min:0,max:10,def:4},
+    {id:'weight_change',label:'1週間の体重変動(kg)',type:NUM,ph:'0',step:'0.1',half:1},
+    {id:'appetite',label:'食欲',type:SEL,opts:opt('旺盛','普通','落ちている','ほぼ無い'),half:1},
+    {id:'symptoms',label:'気になる症状',type:TXT,ph:'例:朝起きられない、集中できない、やる気が出ない...'},
+  ]}]},
+
+  jump:{steps:[{title:'⬆️ ジャンプ力分析',fields:[
+    {id:'age',label:'年齢',type:NUM,ph:'42',third:1},
+    {id:'weight',label:'体重(kg)',type:NUM,ph:'68',third:1},
+    {id:'body_fat',label:'体脂肪率(%)',type:NUM,ph:'18',third:1},
+    {id:'current_jump',label:'現在の垂直跳び(cm)',type:NUM,ph:'45',req:1,half:1},
+    {id:'target_jump',label:'目標の垂直跳び(cm)',type:NUM,ph:'55',half:1},
+    {id:'squat',label:'スクワット1RM(kg)',type:NUM,ph:'任意',half:1},
+    {id:'deadlift',label:'デッドリフト1RM(kg)',type:NUM,ph:'任意',half:1},
+    {id:'weight_freq',label:'ウェイト頻度',type:SEL,opts:opt('なし','週1','週2','週3以上')},
+    {id:'approach_diff',label:'助走と立ちジャンプの差(cm)',type:NUM,ph:'10'},
+    {id:'fatigue',label:'現在の疲労度',type:RNG,min:0,max:10,def:4},
+    {id:'jump_weakness',label:'ジャンプで苦手な点',type:SEL,opts:opt('そもそも跳べない','助走を活かせない','着地が不安定','連続で跳べない','分からない')},
+    {id:'injuries',label:'足・膝の痛み',type:TXT,ph:'例:特になし、着地で膝が痛む...'},
+  ]}]},
+
+  match:{steps:[{title:'🎯 試合パフォーマンス分析',fields:[
+    {id:'career',label:'競技歴(年)',type:SEL,opts:opt('1年未満','1〜2年','3〜5年','5〜10年','10年以上'),half:1},
+    {id:'match_exp',label:'試合経験',type:SEL,opts:opt('ほぼ無し','少ない','普通','豊富'),half:1},
+    {id:'match_vs_practice',label:'試合での力の出せ具合(練習比)',type:RNG,min:0,max:10,def:6},
+    {id:'concentration',label:'試合中の集中力',type:RNG,min:0,max:10,def:6},
+    {id:'nervousness',label:'試合中の緊張度',type:RNG,min:0,max:10,def:5},
+    {id:'post_match_fatigue',label:'試合後の疲労感',type:RNG,min:0,max:10,def:6},
+    {id:'error_rate',label:'試合でのミス頻度',type:SEL,opts:opt('ほぼ無い','少ない','普通','多い','とても多い')},
+    {id:'error_scene',label:'ミスが出やすい場面',type:SEL,opts:opt('競った場面','序盤','終盤','格上相手','重要な場面')},
+    {id:'pre_match_prep',label:'試合前の準備',type:SEL,opts:opt('しっかり準備','普通','特になし')},
+    {id:'match_concern',label:'試合での悩み',type:TXT,ph:'例:練習ではできるのに本番でミスが増える...'},
+  ]}]},
+
+  injury:{steps:[{title:'🩺 怪我リスク分析',fields:[
+    {id:'age',label:'年齢',type:NUM,ph:'42',half:1},
+    {id:'weight',label:'体重(kg)',type:NUM,ph:'68',half:1},
+    {id:'practice_days',label:'週練習回数',type:SEL,opts:opt('週1','週2','週3','週4以上'),half:1},
+    {id:'sleep',label:'睡眠時間',type:SEL,opts:opt('5h未満','5〜6h','6〜7h','7h以上'),half:1},
+    {id:'squat',label:'スクワット(kg)',type:NUM,ph:'任意',half:1},
+    {id:'jump',label:'垂直跳び(cm)',type:NUM,ph:'45',half:1},
+    {id:'weight_freq',label:'ウェイト頻度',type:SEL,opts:opt('なし','週1','週2','週3以上'),half:1},
+    {id:'flexibility',label:'柔軟性の自己評価',type:RNG,min:0,max:10,def:5},
+    {id:'work_load',label:'仕事の身体負担',type:SEL,opts:opt('軽い','普通','重い'),half:1},
+    {id:'warmup',label:'準備運動の習慣',type:SEL,opts:opt('必ずやる','時々','やらない'),half:1},
+    {id:'cooldown',label:'クールダウン習慣',type:SEL,opts:opt('必ずやる','時々','やらない'),half:1},
+    {id:'injuries',label:'既往歴・現在の痛み',type:TXT,ph:'例:右膝半月板(完治)、腰痛が時々、足首捻挫の癖...',req:1},
+  ]}]},
+
+  longevity:{steps:[{title:'♾️ 競技寿命分析',fields:[
+    {id:'age',label:'年齢',type:NUM,ph:'48',req:1,half:1},
+    {id:'career',label:'競技歴(年)',type:SEL,opts:opt('1〜2年','3〜5年','5〜10年','10年以上'),half:1},
+    {id:'goal_years',label:'あと何年続けたい(年)',type:NUM,ph:'15',half:1},
+    {id:'sleep',label:'睡眠時間',type:SEL,opts:opt('5h未満','5〜6h','6〜7h','7h以上'),half:1},
+    {id:'weight_mgmt',label:'体重管理',type:SEL,opts:opt('良好','普通','課題あり')},
+    {id:'weight_training',label:'ウェイト習慣',type:SEL,opts:opt('なし','月数回','週1','週2以上')},
+    {id:'recovery_priority',label:'回復への意識',type:SEL,opts:opt('高い','普通','低い')},
+    {id:'work_load',label:'仕事の身体負担',type:SEL,opts:opt('軽い','普通','重い')},
+    {id:'current_pain',label:'現在の慢性的な痛み',type:TXT,ph:'例:膝、腰...特になし'},
+    {id:'injuries',label:'既往歴',type:TXT,ph:'例:過去の大きな怪我...'},
+    {id:'longevity_concern',label:'競技継続への不安',type:TXT,ph:'例:年々疲れが抜けにくい、怪我が心配...'},
+  ]}]},
+
+  training:{steps:[{title:'📐 練習設計分析',fields:[
+    {id:'practice_days',label:'週練習回数',type:SEL,opts:opt('週1','週2','週3','週4以上'),req:1,half:1},
+    {id:'practice_hours',label:'1回の練習時間',type:SEL,opts:opt('1h以内','1〜2h','2〜3h','3h以上'),half:1},
+    {id:'weight_training',label:'ウェイト頻度',type:SEL,opts:opt('なし','週1','週2','週3以上'),half:1},
+    {id:'match_freq',label:'月試合数',type:SEL,opts:opt('なし','月1','月2〜3','月4以上'),half:1},
+    {id:'sleep',label:'睡眠時間',type:SEL,opts:opt('5h未満','5〜6h','6〜7h','7h以上'),half:1},
+    {id:'rest_days',label:'週の完全休養日',type:SEL,opts:opt('0日','1日','2日','3日以上'),half:1},
+    {id:'intensity',label:'練習強度',type:RNG,min:0,max:10,def:6},
+    {id:'post_practice_fatigue',label:'練習後の疲労感',type:RNG,min:0,max:10,def:6},
+    {id:'practice_content',label:'練習の主な内容',type:SEL,opts:opt('基礎反復中心','ゲーム形式中心','技術練習中心','バランス型')},
+    {id:'performance_trend',label:'最近のパフォーマンス',type:SEL,opts:opt('伸びている','停滞','下降気味')},
+    {id:'goal',label:'目標',type:SEL,opts:opt('健康維持','チーム貢献','大会上位','全国レベル')},
+  ]}]},
+
+  shoes:{steps:[{title:'👟 シューズ分析',fields:[
+    {id:'age',label:'年齢',type:NUM,ph:'42',half:1},
+    {id:'weight',label:'体重(kg)',type:NUM,ph:'68',half:1},
+    {id:'arch',label:'足のアーチ',type:SEL,opts:opt('高い(ハイアーチ)','普通','低い(扁平足気味)','分からない'),half:1},
+    {id:'foot_width',label:'足幅',type:SEL,opts:opt('細い','普通','広い','分からない'),half:1},
+    {id:'movement_pattern',label:'主な動き',type:SEL,opts:opt('前後の動き多い','左右の動き多い','ジャンプ多い','レシーブで低い姿勢多い')},
+    {id:'jump_freq',label:'ジャンプ頻度',type:SEL,opts:opt('多い','普通','少ない'),half:1},
+    {id:'knee_direction',label:'着地時の膝',type:SEL,opts:opt('真っ直ぐ','内側に入る','分からない'),half:1},
+    {id:'floor_type',label:'床の種類',type:SEL,opts:opt('体育館の木床','化学床(リノリウム)','様々')},
+    {id:'current_shoes',label:'現在のシューズ',type:TXT,ph:'例:ミズノ ウエーブ...、特にこだわりなし'},
+    {id:'injuries',label:'足・膝の怪我歴',type:TXT,ph:'例:足首捻挫の癖、特になし'},
+    {id:'shoe_priority',label:'重視すること',type:TXT,ph:'例:とにかく滑らない、膝への負担を減らしたい...'},
+  ]}]},
+
+  type:{steps:[{title:'🧬 競技タイプ診断',fields:[
+    {id:'age',label:'年齢',type:NUM,ph:'42',half:1},
+    {id:'career',label:'競技歴(年)',type:SEL,opts:opt('1年未満','1〜2年','3〜5年','5〜10年','10年以上'),half:1},
+    {id:'strength_play',label:'得意なプレー',type:SEL,opts:opt('強打・スパイク','レシーブ・守備','トス・配球','サーブ','つなぎ・連携')},
+    {id:'weakness_play',label:'苦手なプレー',type:SEL,opts:opt('強打・スパイク','レシーブ・守備','トス・配球','サーブ','つなぎ・連携')},
+    {id:'practice_focus',label:'練習で集中すること',type:SEL,opts:opt('体力・筋力','技術の精度','戦術・配置','とにかく試合形式')},
+    {id:'match_focus',label:'試合で大切にすること',type:SEL,opts:opt('攻めの姿勢','ミスをしない','チームを活かす','冷静な判断')},
+    {id:'team_role',label:'チームでの役割',type:SEL,opts:opt('エース・得点源','司令塔','守備の要','ムードメーカー','サポート役')},
+    {id:'self_style',label:'自分のスタイル',type:SEL,opts:opt('パワー重視','技術重視','頭脳重視','安定重視','まだ模索中')},
+    {id:'ideal_player',label:'目指す選手像',type:TXT,ph:'例:どんな場面でも崩れない選手...'},
+  ]}]},
+
+  winrate:{steps:[{title:'🏆 勝率向上システム',fields:[
+    {id:'win_rate',label:'最近の勝率(%)',type:NUM,ph:'50',half:1},
+    {id:'match_exp',label:'試合経験',type:SEL,opts:opt('少ない','普通','豊富'),half:1},
+    {id:'main_errors',label:'主なミスの種類',type:SEL,opts:opt('サーブミス','レシーブミス','スパイクミス','連携ミス','判断ミス')},
+    {id:'error_situation',label:'ミスが出やすい状況',type:SEL,opts:opt('競った場面','終盤','格上相手','プレッシャー時')},
+    {id:'scoring_method',label:'主な得点パターン',type:SEL,opts:opt('スパイク','サーブ','相手のミス誘発','コース打ち')},
+    {id:'tough_opponent',label:'苦手な相手',type:SEL,opts:opt('パワー型','技巧派','堅守型','格上全般','特になし')},
+    {id:'serve_eval',label:'サーブの自己評価',type:RNG,min:0,max:10,def:5},
+    {id:'receive_eval',label:'レシーブの自己評価',type:RNG,min:0,max:10,def:5},
+    {id:'tactical_understanding',label:'戦術理解度',type:RNG,min:0,max:10,def:5},
+    {id:'team_communication',label:'チーム連携',type:SEL,opts:opt('良好','普通','課題あり')},
+    {id:'recent_challenge',label:'最近の課題',type:TXT,ph:'例:競ると負ける、格上に通用しない...'},
+  ]}]},
+};
+
+// ════════════════════════════════════════════
+//  状態管理
+// ════════════════════════════════════════════
+let state = {module:null,step:0,result:null,chat:[]};
+
+// ════════════════════════════════════════════
+//  ダッシュボード描画
+// ════════════════════════════════════════════
+function renderDashboard(){
+  const hist=getHistory(), journal=getJournal(), habits=getHabits();
+  const hasData=hist.length>0||journal.length>0;
+  const mh=document.getElementById('marketingHero');
+  if(mh)mh.style.display=hasData?'none':'block';
+
+  let html='';
+  if(hasData){
+    const lastDiag=getLatestResult('diagnose');
+    const diags=hist.filter(e=>e.module==='diagnose'&&e.score!=null);
+    let scoreCell='<div class="stat-val">–</div><div class="stat-label">総合スコア</div>';
+    if(lastDiag&&lastDiag.score!=null){
+      const prev=diags.length>=2?diags[diags.length-2].score:null;
+      const d=prev!=null?lastDiag.score-prev:null;
+      const dh=d!=null?`<span class="delta ${d>=0?'up':'down'}">${d>=0?'▲':'▼'}${Math.abs(d)}</span>`:'';
+      scoreCell=`<div class="stat-val">${lastDiag.score}${dh}</div><div class="stat-label">総合スコア</div>`;
+    }
+    html+=`<div class="status-card">
+      <div class="greet">${greeting()}、<b>プレイヤー</b>さん 👋 今日も一歩前へ。</div>
+      <div class="status-row">
+        <div class="stat">${scoreCell}</div>
+        <div class="stat"><div class="stat-val flame">🔥${habitStreak()}</div><div class="stat-label">習慣の継続(日)</div></div>
+        <div class="stat"><div class="stat-val">📔${journalStreak()}</div><div class="stat-label">日誌の継続(日)</div></div>
+      </div></div>`;
+  }
+  html+=missionCardHTML();
+  if(hist.length>0)html+=`<div style="text-align:right;margin-bottom:14px"><button class="section-link" onclick="renderGrowth()">📈 成長の記録を見る →</button></div>`;
+  document.getElementById('homeStatus').innerHTML=html;
+
+  const grid=document.getElementById('moduleGrid');
+  grid.innerHTML='';
+  Object.entries(MODULES).forEach(([key,m])=>{
+    const card=document.createElement('div');
+    card.className='module-card'+(m.featured?' featured':'');
+    card.onclick=()=>openModule(key);
+    card.innerHTML=`
+      <div class="accent-bar" style="background:${m.color}"></div>
+      ${m.featured?'<span class="m-badge">まずはココから</span>':''}
+      <span class="m-icon">${m.icon}</span>
+      <div class="m-title">${m.title}</div>
+      <div class="m-desc">${m.desc}</div>
+      <span class="m-time">⏱ ${m.time||'約2分'}</span>`;
+    grid.appendChild(card);
+  });
+}
+
+// ===== パーソナルホーム: 永続化・習慣・成長 =====
+function greeting(){const h=new Date().getHours();return (h>=5&&h<11)?'おはようございます':(h>=11&&h<18)?'こんにちは':'こんばんは'}
+function getHistory(){try{return JSON.parse(localStorage.getItem('sv_history')||'[]')}catch{return[]}}
+function scoreOf(r){return [r.total_score,r.longevity_score,r.win_rate_score,r.efficiency_score,r.overall_risk_score].find(v=>typeof v==='number')??null}
+function labelOf(r){return r.competitive_type||r.jump_type||r.player_type||r.primary_type||r.shoe_type||r.fatigue_type||r.training_status||''}
+function getLatestResult(m){const h=getHistory().filter(e=>e.module===m);return h.length?h[h.length-1]:null}
+function saveResultToHistory(m,r){const h=getHistory();h.push({module:m,date:new Date().toISOString(),score:scoreOf(r),label:labelOf(r)});if(h.length>200)h.shift();localStorage.setItem('sv_history',JSON.stringify(h))}
+function getFullResults(){try{return JSON.parse(localStorage.getItem('sv_full')||'{}')}catch{return{}}}
+function saveFullResult(m,r){const o=getFullResults();o[m]={date:todayStr(),result:r};localStorage.setItem('sv_full',JSON.stringify(o))}
+function getHabits(){try{return JSON.parse(localStorage.getItem('sv_habits')||'null')}catch{return null}}
+function saveHabits(a){localStorage.setItem('sv_habits',JSON.stringify(a||[]))}
+function getHabitLog(){try{return JSON.parse(localStorage.getItem('sv_habit_log')||'{}')}catch{return{}}}
+function saveHabitLog(o){localStorage.setItem('sv_habit_log',JSON.stringify(o))}
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function toggleHabit(i){const habits=getHabits()||[];const log=getHabitLog();const d=todayStr();if(!log[d])log[d]=new Array(habits.length).fill(false);log[d][i]=!log[d][i];saveHabitLog(log);renderDashboard()}
+function streakFromSet(has){let s=0;const d=new Date();for(let k=0;k<400;k++){const ds=d.toISOString().slice(0,10);if(has(ds))s++;else if(ds===todayStr()){}else break;d.setDate(d.getDate()-1)}return s}
+function habitStreak(){const habits=getHabits()||[];if(!habits.length)return 0;const log=getHabitLog();return streakFromSet(ds=>{const day=log[ds];return day&&day.length===habits.length&&day.every(Boolean)})}
+function journalStreak(){const set=new Set(getJournal().map(e=>e.date));return streakFromSet(ds=>set.has(ds))}
+function missionCardHTML(){
+  const habits=getHabits();
+  if(!habits||!habits.length)return `<div class="mission-card">
+    <h3>🎯 今日のアクション</h3>
+    <div class="mission-empty">まず<b>「競技力総合診断」</b>を受けると、<br>あなた専用の<b>毎日の3つの習慣</b>がここに表示されます。<br>続けるほど、競技力は確実に上がります。</div>
+    <button class="mini-btn" onclick="openModule('diagnose')">総合診断を受ける →</button></div>`;
+  const log=getHabitLog(),d=todayStr(),today=log[d]||new Array(habits.length).fill(false);
+  const done=today.filter(Boolean).length, all=done===habits.length;
+  const items=habits.map((h,i)=>`<div class="mission-item ${today[i]?'done':''}" onclick="toggleHabit(${i})"><div class="mission-check">${today[i]?'✓':''}</div><div class="mission-text">${h}</div></div>`).join('');
+  return `<div class="mission-card">
+    <h3>🎯 今日のアクション <span style="font-size:13px;font-weight:400">(${done}/${habits.length})</span></h3>
+    <div class="sub">${all?'🎉 今日のミッション完了！この積み重ねが必ず力になります。':'最新の診断から導いた、今日やるべき3つ。タップでチェック。'}</div>
+    ${items}</div>`;
+}
+function renderGrowth(){
+  const hist=getHistory();
+  const diags=hist.filter(e=>e.module==='diagnose'&&e.score!=null);
+  const latest={};hist.forEach(e=>{if(e.score!=null)latest[e.module]=e});
+  const gcards=Object.entries(latest).map(([m,e])=>`<div class="gscore"><div class="g-mod">${MODULES[m].icon} ${MODULES[m].title}</div><div class="g-val">${e.score}</div><div class="g-date">${e.date.slice(0,10)}</div></div>`).join('');
+  const histList=hist.slice().reverse().slice(0,30).map(e=>`<div class="hist-item"><span class="hist-icon">${MODULES[e.module].icon}</span><span class="hist-mod">${MODULES[e.module].title}${e.label?`<br><span class="hist-date">${e.label}</span>`:''}</span><span class="hist-score">${e.score!=null?e.score:'–'}</span><span class="hist-date">${e.date.slice(5,10)}</span></div>`).join('');
+  document.getElementById('formView').innerHTML=`
+    <div class="card fade-in"><div class="section-title">📈 総合スコアの推移</div>
+      ${diags.length>=2?'<div class="chart-wrap" style="height:240px;max-width:100%"><canvas id="growthChart"></canvas></div>':'<div class="empty-note">総合診断を2回以上受けると、成長グラフが表示されます。<br>1〜3ヶ月ごとの再診断で変化を確認しましょう。</div>'}</div>
+    <div class="card"><div class="section-title">🏅 各分析の最新スコア</div>${gcards?`<div class="growth-score">${gcards}</div>`:'<div class="empty-note">まだ記録がありません</div>'}</div>
+    ${integratedReportHTML()}
+    <div class="card"><div class="section-title">🗂 診断の履歴</div>${histList||'<div class="empty-note">まだ記録がありません</div>'}</div>
+    <button class="btn btn-outline" onclick="goHome()">🏠 ホームに戻る</button>`;
+  show('formView');
+  if(diags.length>=2){new Chart(document.getElementById('growthChart'),{type:'line',data:{labels:diags.map(e=>e.date.slice(5,10)),datasets:[{label:'総合スコア',data:diags.map(e=>e.score),borderColor:'#552583',backgroundColor:'rgba(85,37,131,.12)',fill:true,tension:.3,pointBackgroundColor:'#FDB927',pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{stepSize:20}}},plugins:{legend:{display:false}}}})}
+}
+
+// ===== 統合レポート（全モジュールの結果を1画面に） =====
+function integratedReportHTML(){
+  const full=getFullResults();
+  const keys=Object.keys(full);
+  if(keys.length<2)return `<div class="card"><div class="section-title">🧩 統合レポート</div><div class="empty-note">2種類以上の分析を受けると、全結果をまとめた統合レポートとAI総合所見がここに表示されます</div></div>`;
+  const rows=keys.map(m=>{
+    const e=full[m],r=e.result,mod=MODULES[m];
+    const score=scoreOf(r),label=labelOf(r);
+    const pr=r.top_priority||r.main_limiter||r.main_factor||r.biggest_win_factor||r.headline||r.bottleneck||'';
+    return `<div class="hist-item"><span class="hist-icon">${mod.icon}</span><span class="hist-mod"><b>${mod.title}</b>${label?` — ${label}`:''}<br><span class="hist-date">${String(pr).slice(0,60)}</span></span><span class="hist-score">${score!=null?score:'–'}</span></div>`;
+  }).join('');
+  return `<div class="card"><div class="section-title">🧩 統合レポート（${keys.length}分析）</div>${rows}
+    <button class="btn btn-accent" style="margin-top:14px" onclick="analyzeOverall()" id="overallBtn">🤖 AIに総合所見を聞く</button>
+    <div id="overallResult" style="margin-top:14px;font-size:14px;line-height:1.8;white-space:pre-wrap"></div></div>`;
+}
+async function analyzeOverall(){
+  const btn=document.getElementById('overallBtn');
+  const out=document.getElementById('overallResult');
+  btn.disabled=true;btn.textContent='AIが全結果を横断分析中...';
+  const full=getFullResults();
+  const summary=Object.entries(full).map(([m,e])=>{
+    const r=e.result;
+    return `【${MODULES[m].title}】(${e.date}) スコア:${scoreOf(r)??'-'} タイプ:${labelOf(r)||'-'} 要点:${JSON.stringify(r).slice(0,400)}`;
+  }).join('\n');
+  try{
+    const res=await fetch(API+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:`以下は私が受けた複数の競技力分析の結果です。全体を横断して、(1)共通して見える根本課題 (2)今週から取り組むべき最優先事項1つ (3)励ましの一言、を300字以内で総合所見としてまとめてください。\n\n${summary}`}]})});
+    const data=await res.json();
+    out.textContent=data.success?data.message:('エラー: '+data.error);
+  }catch(e){out.textContent='エラー: '+e.message}
+  btn.disabled=false;btn.textContent='🤖 もう一度総合所見を聞く';
+}
+
+// ════════════════════════════════════════════
+//  ナビゲーション
+// ════════════════════════════════════════════
+function show(view){
+  ['dashboard','formView','loadingView','resultView'].forEach(v=>{
+    document.getElementById(v).classList.toggle('hidden',v!==view);
+  });
+  document.getElementById('backBtn').classList.toggle('hidden',view==='dashboard');
+  window.scrollTo(0,0);
+}
+function goHome(){state={module:null,step:0,result:null,chat:[]};renderDashboard();show('dashboard')}
+
+function openModule(key){
+  state.module=key; state.step=0; state.result=null; state.chat=[];
+  if(key==='journal'){renderJournal();return}
+  renderForm();
+}
+
+// ════════════════════════════════════════════
+//  フォーム描画
+// ════════════════════════════════════════════
+function fieldHTML(f){
+  const cls = f.third?'':f.half?'':'';
+  let inner='';
+  if(f.type===SEL){
+    inner=`<select class="form-control" id="f_${f.id}"><option value="">選択</option>${f.opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('')}</select>`;
+  }else if(f.type===TXT){
+    inner=`<textarea class="form-control" id="f_${f.id}" placeholder="${f.ph||''}"></textarea>`;
+  }else if(f.type===RNG){
+    inner=`<div class="range-wrap"><input type="range" id="f_${f.id}" min="${f.min}" max="${f.max}" value="${f.def}" oninput="document.getElementById('rv_${f.id}').textContent=this.value"><span class="range-val" id="rv_${f.id}">${f.def}</span></div>`;
+  }else{
+    inner=`<input class="form-control" type="${f.type}" id="f_${f.id}" placeholder="${f.ph||''}" ${f.step?`step="${f.step}"`:''}>`;
+  }
+  return `<div class="form-group">
+    <label class="form-label">${f.label}${f.req?'<span class="req">*</span>':''}</label>${inner}</div>`;
+}
+
+function renderForm(){
+  const m=MODULES[state.module];
+  const form=FORMS[state.module];
+  const steps=form.steps;
+  const cur=steps[state.step];
+  const isLast=state.step===steps.length-1;
+  const isFirst=state.step===0;
+
+  // フィールドをグループ化 (half/thirdは隣接でまとめる)
+  let fieldsHTML='';
+  let i=0;
+  while(i<cur.fields.length){
+    const f=cur.fields[i];
+    if(f.half){
+      const f2=cur.fields[i+1];
+      if(f2&&f2.half){fieldsHTML+=`<div class="form-row">${fieldHTML(f)}${fieldHTML(f2)}</div>`;i+=2;continue}
+    }
+    if(f.third){
+      const f2=cur.fields[i+1],f3=cur.fields[i+2];
+      if(f2&&f2.third&&f3&&f3.third){fieldsHTML+=`<div class="form-row3">${fieldHTML(f)}${fieldHTML(f2)}${fieldHTML(f3)}</div>`;i+=3;continue}
+    }
+    fieldsHTML+=fieldHTML(f);i++;
+  }
+
+  const stepDots=steps.length>1?`<div class="step-nav">${steps.map((s,idx)=>`<div class="step-dot ${idx<state.step?'done':idx===state.step?'active':''}"></div>`).join('')}</div>`:'';
+
+  document.getElementById('formView').innerHTML=`
+    ${stepDots}
+    <div class="card fade-in">
+      <div class="section-title">${cur.title}</div>
+      ${state.step===0?`<p style="font-size:12.5px;color:var(--muted);margin:-4px 0 16px;line-height:1.7;background:#faf5ff;border:1px solid var(--border);border-radius:10px;padding:11px 13px">💡 正直に答えるほど精度が上がります。<b style="color:var(--primary)">必須は <span style="color:var(--danger)">*</span> 印だけ</b>。わからない項目は空欄のままでOKです。</p>`:''}
+      ${fieldsHTML}
+    </div>
+    <div style="display:flex;gap:10px">
+      ${!isFirst?`<button class="btn btn-outline" onclick="prevStep()">← 戻る</button>`:''}
+      ${isLast
+        ?`<button class="btn btn-accent" onclick="submitForm()">${m.icon} AI分析スタート</button>`
+        :`<button class="btn btn-primary" onclick="nextStep()">次へ →</button>`}
+    </div>`;
+  show('formView');
+  // 既存値の復元
+  if(state.formData){
+    Object.entries(state.formData).forEach(([k,v])=>{
+      const el=document.getElementById('f_'+k);
+      if(el){el.value=v;const rv=document.getElementById('rv_'+k);if(rv)rv.textContent=v}
+    });
+  }
+}
+
+function collectStep(){
+  const cur=FORMS[state.module].steps[state.step];
+  state.formData=state.formData||{};
+  cur.fields.forEach(f=>{
+    const el=document.getElementById('f_'+f.id);
+    if(el)state.formData[f.id]=el.value.trim();
+  });
+}
+function validateStep(){
+  const cur=FORMS[state.module].steps[state.step];
+  for(const f of cur.fields){
+    if(f.req){
+      const el=document.getElementById('f_'+f.id);
+      if(el&&!el.value.trim()){alert(`「${f.label}」は必須です`);return false}
+    }
+  }
+  return true;
+}
+function nextStep(){if(!validateStep())return;collectStep();state.step++;renderForm()}
+function prevStep(){collectStep();state.step--;renderForm()}
+
+// ════════════════════════════════════════════
+//  分析実行
+// ════════════════════════════════════════════
+const LOADING_MSGS=['あなたのデータを読み解いています...','表面的な症状の奥にある"本当の原因"を探しています...','ソフトバレーの特性に合わせて評価中...','回復・睡眠の状態を重点的にチェック中...','あなただけの改善プランを作成中...'];
+async function submitForm(){
+  if(!validateStep())return;
+  collectStep();
+  const m=MODULES[state.module];
+  document.getElementById('loadingTitle').textContent=m.title+'を分析中...';
+  show('loadingView');
+  let mi=0;
+  const iv=setInterval(()=>{document.getElementById('loadingMsg').textContent=LOADING_MSGS[mi++%LOADING_MSGS.length]},1800);
+
+  try{
+    const res=await fetch(API+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({module:state.module,data:state.formData})});
+    const data=await res.json();
+    clearInterval(iv);
+    if(!data.success)throw new Error(data.error);
+    state.result=data.result;
+    if(state.module==='diagnose'){
+      const prev=getLatestResult('diagnose');
+      state.prevScore=prev?prev.score:null;
+      if(Array.isArray(data.result.daily_habits))saveHabits(data.result.daily_habits.slice(0,3));
+    }
+    saveResultToHistory(state.module,data.result);
+    saveFullResult(state.module,data.result);
+    state.chat=[
+      {role:'user',content:`診断データ:${JSON.stringify(state.formData)}\n結果:${JSON.stringify(state.result)}\n以降の質問に答えて。`},
+      {role:'assistant',content:'分析完了しました。結果について何でも質問してください。'}
+    ];
+    renderResult();
+  }catch(e){
+    clearInterval(iv);
+    let msg;
+    if(e instanceof TypeError){
+      msg='サーバーに接続できませんでした。\n\nターミナルで以下を実行してから、もう一度お試しください：\ncd ~/soft-volleyball-ai && python3 server.py';
+    }else if(String(e.message).includes('429')||String(e.message).includes('quota')){
+      msg='本日の無料利用枠を使い切りました。\n明日になるとリセットされて再び使えます。';
+    }else if(String(e.message).includes('503')){
+      msg='AIが混雑しています。\n30秒ほど待ってからもう一度お試しください。';
+    }else{
+      msg='分析エラー: '+e.message+'\n\n少し時間をおいてもう一度お試しください。';
+    }
+    alert(msg);
+    renderForm();
+  }
+}
+
+// ════════════════════════════════════════════
+//  結果描画 (モジュール別)
+// ════════════════════════════════════════════
+function renderResult(){
+  const r=state.result;
+  const renderer=RESULT_RENDERERS[state.module]||RESULT_RENDERERS.generic;
+  document.getElementById('resultView').innerHTML=renderer(r)+sciHTML(r)+chatHTML()+actionsHTML();
+  show('resultView');
+  // 遅延アニメーション発火
+  setTimeout(()=>{
+    document.querySelectorAll('[data-w]').forEach(el=>el.style.width=el.dataset.w);
+  },150);
+  // チャート描画
+  if(state._chartFn){state._chartFn();state._chartFn=null}
+  bindChat();
+}
+
+const RANK=(s)=>s>=85?'#FDB927':s>=70?'#2ecc71':s>=50?'#3498db':'#e74c3c';
+const RISKCOLOR=(r)=>({'高':'#e74c3c','最高':'#c0392b','中':'#f39c12','低':'#2ecc71'}[r]||'#3498db');
+function bar(label,val,color){return `<div class="compare-row"><div class="compare-label">${label}</div><div class="compare-bar"><div class="compare-fill" data-w="${val}%" style="background:${color}"></div></div><div class="compare-val">${val}</div></div>`}
+function list(items,icon){return `<ul class="insight-list">${(items||[]).map(t=>`<li><span class="ic">${icon}</span><span>${t}</span></li>`).join('')}</ul>`}
+function plan(items){return (items||[]).map((t,i)=>`<div class="plan-item"><div class="plan-num">${i+1}</div><div class="plan-text">${typeof t==='string'?t:(t.week?`<b>第${t.week}週: ${t.focus}</b><br>${(t.training||[]).join(' / ')}<br><small style="color:var(--muted)">${t.note||''}</small>`:JSON.stringify(t))}</div></div>`).join('')}
+function stars(n){let s='';for(let i=0;i<5;i++)s+=i<n?'★':'<span class="star-empty">★</span>';return `<span class="stars">${s}</span>`}
+function sciHTML(r){
+  if(!r||!r.scientific_basis)return '';
+  return `<div class="card"><div class="section-title">🧪 この診断の科学的根拠</div>
+    <div style="font-size:13.5px;line-height:1.8;color:#3d3450">${r.scientific_basis}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px">参考理論: ACWR(負荷管理) / sRPE(主観的負荷) / フィットネス-疲労理論 / 睡眠と怪我リスクの研究 / プライオメトリクス研究</div></div>`;
+}
+
+const RESULT_RENDERERS = {
+  // ── 総合診断 ──
+  diagnose(r){
+    const sc=r.scores||{};
+    const labels={technical:['技術','#3498db'],physical:['フィジカル','#e74c3c'],recovery:['回復','#2ecc71'],judgment:['判断力','#9b59b6'],training_design:['練習設計','#e67e22'],reproducibility:['再現性','#1abc9c'],injury_risk:['怪我耐性','#f39c12'],potential:['将来性','#FDB927']};
+    state._chartFn=()=>{
+      const keys=Object.keys(labels);
+      new Chart(document.getElementById('radarChart'),{type:'radar',
+        data:{labels:keys.map(k=>labels[k][0]),datasets:[
+          {label:'あなた',data:keys.map(k=>sc[k]||0),backgroundColor:'rgba(85,37,131,.15)',borderColor:'#552583',borderWidth:2,pointBackgroundColor:'#FDB927',pointRadius:4},
+          {label:'全国平均',data:[68,65,62,70,65,68,72,70],borderColor:'rgba(107,122,141,.4)',borderDash:[5,5],borderWidth:1,pointRadius:0,backgroundColor:'rgba(107,122,141,.05)'}]},
+        options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10}},pointLabels:{font:{size:11,weight:'600'}}}},plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+    };
+    const grid=Object.entries(labels).map(([k,[lb,c]])=>`<div class="score-item"><div class="score-item-label">${lb}</div><div class="score-item-bar"><div class="score-item-fill" data-w="${sc[k]||0}%" style="background:${c}"></div></div><div class="score-item-value" style="color:${c}">${sc[k]||0}<span style="font-size:11px;color:var(--muted)">/100</span></div></div>`).join('');
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">総合競技力スコア</div>
+      <div class="big-score">${r.total_score||0}</div>
+      <div class="score-cap">/ 100点</div>
+      ${state.prevScore!=null?`<div style="font-size:13px;margin-top:6px;color:#efe4fb">前回 ${state.prevScore} → 今回 ${r.total_score||0} <span style="font-weight:800;color:${(r.total_score-state.prevScore)>=0?'#7CFC9B':'#ff9b9b'}">(${(r.total_score-state.prevScore)>=0?'+':''}${(r.total_score||0)-state.prevScore})</span></div>`:''}
+      ${r.competitive_type_nickname?`<div style="font-size:22px;font-weight:800;color:var(--accent);margin-top:10px">「${r.competitive_type_nickname}」</div>`:''}
+      <div class="type-pill">${r.competitive_type||''}</div>
+      <div style="font-size:12px;color:#aac4e0;margin-top:8px">${r.competitive_type_description||''}</div>
+    </div>
+    <div class="card"><div class="section-title">📊 全国比較</div>
+      <div style="font-size:14px;line-height:1.7;margin-bottom:14px">${r.national_comparison||''}</div>
+      ${bar('あなた',r.total_score||0,'var(--accent)')}${bar('全国平均',70,'var(--muted)')}${bar('全国上位',85,'var(--accent2)')}</div>
+    <div class="card"><div class="section-title">🕸️ レーダーチャート</div><div class="chart-wrap"><canvas id="radarChart"></canvas></div></div>
+    <div class="card"><div class="section-title">📈 カテゴリ別スコア</div><div class="score-grid">${grid}</div></div>
+    <div class="card"><div class="section-title">⚠️ ボトルネック分析</div><div class="box box-warn">${r.bottleneck||''}</div></div>
+    <div class="card"><div class="section-title">🎯 最優先改善ポイント</div><div class="box box-good">${r.top_priority||''}</div></div>
+    ${(r.daily_habits&&r.daily_habits.length)?`<div class="card"><div class="section-title">☑️ 今日から始める3つの習慣</div>${list(r.daily_habits,'☑️')}<div class="box box-info" style="margin-top:10px">この3つはホームの「今日のアクション」に登録されました。毎日チェックして継続しましょう。継続日数が競技力の伸びに直結します。</div></div>`:''}
+    <div class="card"><div class="section-title">✅ 強み TOP5</div>${list(r.strengths,'✅')}</div>
+    <div class="card"><div class="section-title">⚡ 改善ポイント TOP5</div>${list(r.weaknesses,'⚡')}</div>
+    <div class="card"><div class="section-title">📅 4週間プラン</div>${plan(r.plan_4weeks)}</div>
+    <div class="card"><div class="section-title">📆 3ヶ月プラン</div>${plan(r.plan_3months)}</div>
+    <div class="card"><div class="section-title">🔮 1年後の予測</div><div class="box box-info">${r.prediction_1year||''}</div></div>
+    <div class="card"><div class="section-title">🔬 AI詳細分析</div><div style="font-size:14px;line-height:1.8;white-space:pre-wrap">${r.ai_analysis||''}</div></div>`;
+  },
+
+  // ── 疲労・回復 ──
+  fatigue(r){
+    const risk=r.overwork_risk||'中';
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">${r.fatigue_type||'疲労タイプ'}</div>
+      <div style="font-size:26px;font-weight:800;margin:10px 0;color:#fff">${r.headline||''}</div>
+      <div class="type-pill" style="background:${RISKCOLOR(risk)}33;color:${RISKCOLOR(risk)};border-color:${RISKCOLOR(risk)}">オーバーワーク危険度: ${risk}</div>
+    </div>
+    <div class="card"><div class="section-title">📊 疲労スコア</div>
+      ${bar('身体疲労',r.body_fatigue_score||0,'#e67e22')}
+      ${bar('神経疲労',r.neuro_fatigue_score||0,'#9b59b6')}
+      ${bar('回復状態',r.recovery_score||0,r.recovery_score>=60?'#2ecc71':'#e74c3c')}
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">※神経疲労は身体疲労より回復に時間がかかります</div></div>
+    <div class="card"><div class="section-title">🔍 原因分析</div><div class="box box-warn">${r.cause_analysis||''}</div></div>
+    <div class="card"><div class="section-title">⚡ 今すぐ必要な行動</div>${list(r.immediate_actions,'👉')}</div>
+    <div class="card"><div class="section-title">📅 1週間 回復プラン</div>${plan(r.week_recovery_plan)}</div>
+    <div class="card"><div class="section-title">⚠️ 注意すべきサイン</div>${list(r.warning_signs,'🚨')}</div>
+    <div class="card"><div class="section-title">📉 パフォーマンスへの影響</div><div style="font-size:14px;line-height:1.8">${r.performance_impact||''}</div></div>
+    <div class="card"><div class="section-title">⏱️ 回復までの目安</div><div class="box box-info">${r.recovery_timeline||''}</div></div>`;
+  },
+
+  // ── ジャンプ ──
+  jump(r){
+    const factors=(r.limiters||[]).map(f=>`<div class="factor"><div class="factor-head"><span class="factor-name">${f.factor}</span><span class="factor-impact">影響度${f.impact}% / スコア${f.score}</span></div><div class="factor-bar"><div class="factor-fill" data-w="${f.score}%" style="background:${RANK(f.score)}"></div></div><div class="factor-desc">${f.description||''}</div></div>`).join('');
+    const ex=(r.key_exercises||[]).map(e=>`<div class="plan-item"><div class="plan-num">💪</div><div class="plan-text"><b>${e.name}</b> (${e.sets} / ${e.intensity})<br><small style="color:var(--muted)">${e.reason}</small></div></div>`).join('');
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">ジャンプタイプ</div>
+      <div class="big-score" style="font-size:40px;margin:8px 0">${r.jump_type||''}</div>
+      <div style="font-size:13px;color:#aac4e0">現状: ${r.current_level||''} ／ 改善余地: +${r.improvement_potential||0}cm</div>
+      <div class="type-pill">目標 ${r.target_jump||0}cm</div>
+    </div>
+    <div class="card"><div class="section-title">🎯 最大の制限要因</div><div class="box box-warn">${r.main_limiter||''}</div></div>
+    <div class="card"><div class="section-title">📊 制限要因の内訳</div>${factors}</div>
+    <div class="card"><div class="section-title">📅 4週間プラン</div>${plan(r.plan_4weeks)}</div>
+    <div class="card"><div class="section-title">💪 重点エクササイズ</div>${ex}</div>
+    <div class="card"><div class="section-title">🍽️ 栄養アドバイス</div><div class="box box-good">${r.nutrition_tip||''}</div></div>
+    <div class="card"><div class="section-title">⚠️ よくある間違い</div>${list(r.common_mistakes,'❌')}</div>`;
+  },
+
+  // ── 試合パフォーマンス ──
+  match(r){
+    const fb=(r.factor_breakdown||[]).map(f=>`<div class="factor"><div class="factor-head"><span class="factor-name">${f.name}</span><span class="factor-impact">影響:${f.impact}</span></div><div class="factor-bar"><div class="factor-fill" data-w="${f.score}%" style="background:${RANK(f.score)}"></div></div><div class="factor-desc">${f.description||''}</div></div>`).join('');
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">あなたは</div>
+      <div class="big-score" style="font-size:40px;margin:8px 0">${r.player_type||''}</div>
+      <div style="font-size:13px;color:#aac4e0">練習と試合の差: ${r.practice_vs_match_gap||0}%</div>
+      <div class="type-pill">主因: ${r.main_factor||''}</div>
+    </div>
+    <div class="card"><div class="section-title">📝 タイプ説明</div><div style="font-size:14px;line-height:1.8">${r.type_description||''}</div></div>
+    <div class="card"><div class="section-title">📊 要因分析</div>${fb}</div>
+    <div class="card"><div class="section-title">🔍 試合分析</div><div class="box box-warn">${r.match_analysis||''}</div></div>
+    <div class="card"><div class="section-title">❌ ミスのパターン</div><div style="font-size:14px;line-height:1.8">${r.error_pattern||''}</div></div>
+    <div class="card"><div class="section-title">🧠 メンタル戦略</div>${list(r.mental_strategy,'🧠')}</div>
+    <div class="card"><div class="section-title">📋 戦術アドバイス</div>${list(r.tactical_advice,'📋')}</div>
+    <div class="card"><div class="section-title">🎯 試合前ルーティン</div><div class="box box-good">${r.pre_match_routine||''}</div></div>
+    <div class="card"><div class="section-title">📈 改善プラン</div>${list(r.improvement_plan,'✅')}</div>`;
+  },
+
+  // ── 怪我リスク ──
+  injury(r){
+    const parts=(r.body_parts||[]).map(p=>`<div class="bodypart"><div class="bp-gauge" style="background:${RISKCOLOR(p.risk)}">${p.score}</div><div class="bp-info"><div class="bp-name">${p.part}<span class="bp-risk" style="background:${RISKCOLOR(p.risk)}">${p.risk}</span></div><div class="bp-reason">${p.reason||''}</div><div class="bp-prev"><b>予防:</b> ${(p.prevention||[]).join(' / ')}</div></div></div>`).join('');
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">総合怪我リスク</div>
+      <div class="big-score" style="color:${RISKCOLOR(r.overall_risk)}">${r.overall_risk_score||0}</div>
+      <div class="type-pill" style="background:${RISKCOLOR(r.overall_risk)}33;color:${RISKCOLOR(r.overall_risk)};border-color:${RISKCOLOR(r.overall_risk)}">リスク: ${r.overall_risk||''} ／ 最注意: ${r.highest_risk_part||''}</div>
+    </div>
+    <div class="card"><div class="section-title">🦴 部位別リスク</div>${parts}</div>
+    <div class="card"><div class="section-title">🚨 今すぐ対処すべきこと</div>${list(r.immediate_concerns,'🚨')}</div>
+    <div class="card"><div class="section-title">🏠 生活習慣リスク</div>${list(r.lifestyle_risks,'⚠️')}</div>
+    <div class="card"><div class="section-title">🛡️ 予防プログラム</div>${list(r.prevention_program,'🛡️')}</div>
+    <div class="card"><div class="section-title">🏥 医師相談の目安</div><div class="box box-danger">${r.when_to_see_doctor||''}</div></div>
+    <div class="card"><div class="section-title">⏱️ リスク予測</div><div class="box box-info">${r.risk_timeline||''}</div></div>`;
+  },
+
+  // ── 競技寿命 ──
+  longevity(r){
+    const p5=r.prediction_5years||{},p10=r.prediction_10years||{};
+    const keys=(r.longevity_keys||[]).map(k=>`<div class="factor"><div class="factor-head"><span class="factor-name">${k.factor}</span><span class="factor-impact">重要度:${k.importance} / 現状:${k.current}</span></div><div class="factor-desc"><b style="color:var(--primary)">対策:</b> ${k.action}</div></div>`).join('');
+    const ds=r.decade_strategy||{};
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">競技寿命スコア</div>
+      <div class="big-score">${r.longevity_score||0}</div>
+      <div class="score-cap">予測ピーク年齢: ${r.estimated_peak_age||'-'}歳</div>
+      <div class="type-pill">あと約${r.competitive_years_remaining||0}年 競技可能 ／ ${r.trajectory||''}</div>
+    </div>
+    <div class="card"><div class="section-title">🔮 将来予測</div>
+      <div class="box box-info" style="margin-bottom:10px"><b>5年後</b> (スコア${p5.score||'-'} / ${p5.level||''})<br>${p5.key_factor||''}</div>
+      <div class="box box-info"><b>10年後</b> (スコア${p10.score||'-'} / ${p10.level||''})<br>${p10.key_factor||''}</div></div>
+    <div class="card"><div class="section-title">✅ 年齢的な強み</div>${list(r.age_advantage,'✅')}</div>
+    <div class="card"><div class="section-title">⚠️ 年齢的なリスク</div>${list(r.age_risks,'⚠️')}</div>
+    <div class="card"><div class="section-title">🔑 競技寿命を延ばす鍵</div>${keys}</div>
+    <div class="card"><div class="section-title">🗺️ 10年戦略</div>
+      <div class="plan-item"><div class="plan-num">今</div><div class="plan-text">${ds.now||''}</div></div>
+      <div class="plan-item"><div class="plan-num">5年</div><div class="plan-text">${ds['5years']||''}</div></div>
+      <div class="plan-item"><div class="plan-num">10年</div><div class="plan-text">${ds['10years']||''}</div></div></div>
+    <div class="card"><div class="section-title">🔄 競技スタイルの進化</div><div style="font-size:14px;line-height:1.8">${r.role_evolution||''}</div></div>
+    <div class="card"><div class="section-title">💪 メッセージ</div><div class="box box-good">${r.inspiration||''}</div></div>`;
+  },
+
+  // ── 練習設計 ──
+  training(r){
+    const b=r.balance||{};
+    const balanceLabels={practice:'練習',rest:'休養',match:'試合',weight_training:'ウェイト',sleep:'睡眠'};
+    const balanceHTML=Object.entries(balanceLabels).map(([k,lb])=>{
+      const d=b[k]||{};
+      return `<div class="factor"><div class="factor-head"><span class="factor-name">${lb}</span><span class="factor-impact">現状${d.actual||0} / 適正${d.optimal||0} → <b style="color:${d.status&&d.status.includes('少')||d.status&&d.status.includes('不足')||d.status&&d.status.includes('なさ')?'#e74c3c':d.status&&d.status.includes('多')?'#f39c12':'#2ecc71'}">${d.status||''}</b></span></div><div class="factor-bar" style="position:relative"><div class="factor-fill" data-w="${d.actual||0}%" style="background:#3498db"></div></div></div>`;
+    }).join('');
+    const ow=r.optimal_week||{};
+    const days={mon:'月',tue:'火',wed:'水',thu:'木',fri:'金',sat:'土',sun:'日'};
+    const weekHTML=Object.entries(days).map(([k,lb])=>`<div class="plan-item"><div class="plan-num">${lb}</div><div class="plan-text">${ow[k]||'-'}</div></div>`).join('');
+    const statusColor=r.training_status&&r.training_status.includes('過剰')?'#e74c3c':r.training_status&&r.training_status.includes('過少')?'#f39c12':'#2ecc71';
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">練習設計の判定</div>
+      <div class="big-score" style="font-size:38px;margin:8px 0;color:${statusColor}">${r.training_status||''}</div>
+      <div class="type-pill">効率スコア ${r.efficiency_score||0}/100</div>
+    </div>
+    <div class="card"><div class="section-title">📊 スコア</div>
+      ${bar('努力効率',r.efficiency_score||0,'#2ecc71')}${bar('練習量',r.volume_score||0,'#3498db')}${bar('練習の質',r.quality_score||0,'#e67e22')}</div>
+    <div class="card"><div class="section-title">⚖️ バランス分析</div>${balanceHTML}</div>
+    <div class="card"><div class="section-title">⚠️ 判定</div><div class="box box-warn">${r.verdict||''}</div></div>
+    <div class="card"><div class="section-title">🎯 ボトルネック</div><div class="box box-danger">${r.bottleneck||''}</div></div>
+    <div class="card"><div class="section-title">📅 理想の1週間</div>${weekHTML}</div>
+    <div class="card"><div class="section-title">⚡ 今すぐ変えること</div>${list(r.immediate_changes,'👉')}</div>
+    <div class="card"><div class="section-title">✨ 質を上げるコツ</div>${list(r.quality_tips,'✨')}</div>
+    <div class="card"><div class="section-title">🔄 強弱サイクル</div><div style="font-size:14px;line-height:1.8">${r.periodization||''}</div></div>`;
+  },
+
+  // ── シューズ ──
+  shoes(r){
+    const prof=(r.priority_profile||[]).map(p=>`<div class="plan-item"><div class="plan-num">${p.priority}</div><div class="plan-text"><b>${p.feature}</b> ${stars(p.score)}<br><small style="color:var(--muted)">${p.reason||''}</small></div></div>`).join('');
+    const bt=r.budget_tiers||{};
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">あなたのシューズタイプ</div>
+      <div class="big-score" style="font-size:32px;margin:10px 0">${r.shoe_type||''}</div>
+    </div>
+    <div class="card"><div class="section-title">🏃 あなたの動きパターン</div><div style="font-size:14px;line-height:1.8">${r.your_movement_pattern||''}</div></div>
+    <div class="card"><div class="section-title">📊 性能の優先順位</div>${prof}</div>
+    <div class="card"><div class="section-title">⭐ 推奨される特性</div><div class="box box-good">${r.recommended_features||''}</div></div>
+    <div class="card"><div class="section-title">🚫 避けるべき特性</div>${list(r.what_to_avoid,'🚫')}</div>
+    <div class="card"><div class="section-title">📏 フィッティング</div><div style="font-size:14px;line-height:1.8">${r.fit_advice||''}</div></div>
+    <div class="card"><div class="section-title">🔄 交換の目安</div><div class="box box-info">${r.replacement_timing||''}</div></div>
+    <div class="card"><div class="section-title">🏟️ 床タイプの注意</div><div style="font-size:14px;line-height:1.8">${r.floor_type_note||''}</div></div>
+    <div class="card"><div class="section-title">💰 価格帯の選び方</div>
+      <div class="box box-info" style="margin-bottom:10px"><b>スタンダード:</b> ${bt.standard||''}</div>
+      <div class="box box-good"><b>プレミアム:</b> ${bt.premium||''}</div></div>`;
+  },
+
+  // ── 競技タイプ ──
+  type(r){
+    const ts=r.type_score||{};
+    const labels={power:['パワー型','#e74c3c'],technical:['技術型','#3498db'],tactical:['戦術型','#9b59b6'],stable:['安定型','#1abc9c'],growth:['成長型','#2ecc71'],thinking:['思考型','#34495e'],recovery_deficit:['回復不足型','#e67e22'],allrounder:['オールラウンダー型','#FDB927']};
+    state._chartFn=()=>{
+      const keys=Object.keys(labels);
+      new Chart(document.getElementById('typeChart'),{type:'radar',
+        data:{labels:keys.map(k=>labels[k][0]),datasets:[{label:'タイプ適性',data:keys.map(k=>ts[k]||0),backgroundColor:'rgba(142,68,173,.15)',borderColor:'#8e44ad',borderWidth:2,pointBackgroundColor:'#FDB927',pointRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10}},pointLabels:{font:{size:10,weight:'600'}}}},plugins:{legend:{display:false}}}});
+    };
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">あなたの競技タイプ</div>
+      <div class="big-score" style="font-size:40px;margin:8px 0">${r.primary_type||''}</div>
+      ${r.type_nickname?`<div style="font-size:22px;font-weight:800;color:var(--accent);margin:4px 0 8px">「${r.type_nickname}」</div>`:''}
+      <div class="type-pill">副タイプ: ${r.secondary_type||''}</div>
+    </div>
+    <div class="card"><div class="section-title">🕸️ タイプ適性チャート</div><div class="chart-wrap"><canvas id="typeChart"></canvas></div></div>
+    <div class="card"><div class="section-title">📝 タイプ説明</div><div style="font-size:14px;line-height:1.8">${r.type_description||''}</div></div>
+    <div class="card"><div class="section-title">✅ 強み</div>${list(r.strengths,'✅')}</div>
+    <div class="card"><div class="section-title">⚡ 弱み</div>${list(r.weaknesses,'⚡')}</div>
+    <div class="card"><div class="section-title">🎯 理想の役割</div><div class="box box-good">${r.ideal_role||''}</div></div>
+    <div class="card"><div class="section-title">📈 成長戦略</div><div class="box box-info">${r.growth_strategy||''}</div></div>
+    <div class="card"><div class="section-title">🏐 プレースタイル</div><div style="font-size:14px;line-height:1.8">${r.famous_player_analogy||''}</div></div>
+    <div class="card"><div class="section-title">🤝 相性の良いタイプ</div><div style="font-size:14px;line-height:1.8">${r.team_compatibility||''}</div></div>
+    <div class="card"><div class="section-title">🏋️ 最適な練習法</div><div style="font-size:14px;line-height:1.8">${r.training_approach||''}</div></div>
+    <div class="card"><div class="section-title">🧠 メンタル面</div><div style="font-size:14px;line-height:1.8">${r.mental_approach||''}</div></div>
+    <div class="card"><div class="section-title">🚀 次に目指す方向</div><div class="box box-good">${r.evolution_path||''}</div></div>`;
+  },
+
+  // ── 勝率向上 ──
+  winrate(r){
+    const fs=(r.factor_scores||[]).map(f=>`<div class="factor"><div class="factor-head"><span class="factor-name">${f.factor}</span><span class="factor-impact">影響度${f.impact}% / スコア${f.score}</span></div><div class="factor-bar"><div class="factor-fill" data-w="${f.score}%" style="background:${RANK(f.score)}"></div></div><div class="factor-desc">${f.description||''}</div></div>`).join('');
+    return `
+    <div class="result-hero">
+      <div style="font-size:13px;color:#aac4e0">勝率スコア</div>
+      <div class="big-score">${r.win_rate_score||0}</div>
+      <div class="score-cap">現在 ${r.current_win_rate_estimate||'-'} → 潜在 ${r.potential_win_rate||'-'}</div>
+      <div class="type-pill">最大の鍵: ${r.biggest_win_factor||''}</div>
+    </div>
+    <div class="card"><div class="section-title">📊 勝敗要因の分析</div>${fs}</div>
+    <div class="card"><div class="section-title">❌ ミス分析</div><div class="box box-warn">${r.error_analysis||''}</div></div>
+    <div class="card"><div class="section-title">📋 戦術的課題</div>${list(r.tactical_gaps,'📋')}</div>
+    <div class="card"><div class="section-title">⚡ すぐ勝率を上げる方法</div>${list(r.quick_wins,'⚡')}</div>
+    <div class="card"><div class="section-title">🎯 プレー別戦略</div>
+      <div class="box box-info" style="margin-bottom:8px"><b>サーブ:</b> ${r.serve_strategy||''}</div>
+      <div class="box box-info" style="margin-bottom:8px"><b>レシーブ:</b> ${r.receive_strategy||''}</div>
+      <div class="box box-info"><b>攻撃:</b> ${r.attack_strategy||''}</div></div>
+    <div class="card"><div class="section-title">🧠 試合中のメンタル</div><div style="font-size:14px;line-height:1.8">${r.mental_game||''}</div></div>
+    <div class="card"><div class="section-title">🤝 チーム連携</div><div style="font-size:14px;line-height:1.8">${r.team_communication||''}</div></div>
+    <div class="card"><div class="section-title">🎬 試合前準備</div><div class="box box-good">${r.match_prep||''}</div></div>`;
+  },
+
+  generic(r){return `<div class="card"><pre style="white-space:pre-wrap;font-size:13px">${JSON.stringify(r,null,2)}</pre></div>`}
+};
+
+// ════════════════════════════════════════════
+//  チャット
+// ════════════════════════════════════════════
+function chatHTML(){
+  return `<div class="card"><div class="section-title">💬 AIコーチに追加質問</div>
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-msg ai"><div class="chat-avatar">🤖</div><div class="chat-bubble">分析が完了しました。この結果について詳しく聞きたいことがあれば何でも質問してください。</div></div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" placeholder="例: 具体的な改善方法を教えて" rows="2"></textarea>
+      <button class="chat-send" onclick="sendChat()">↑</button>
+    </div></div>`;
+}
+function bindChat(){
+  const ci=document.getElementById('chatInput');
+  if(ci)ci.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+}
+function addChatMsg(type,text){
+  const c=document.getElementById('chatContainer');
+  const d=document.createElement('div');
+  d.className='chat-msg '+type;
+  d.innerHTML=`<div class="chat-avatar">${type==='ai'?'🤖':'🏐'}</div><div class="chat-bubble">${text}</div>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+}
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();if(!text)return;
+  addChatMsg('user',text);input.value='';
+  state.chat.push({role:'user',content:text});
+  const thinking=addChatMsg('ai','...');
+  try{
+    const res=await fetch(API+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:state.chat})});
+    const data=await res.json();thinking.remove();
+    const reply=data.message||'エラーが発生しました';
+    addChatMsg('ai',reply);state.chat.push({role:'assistant',content:reply});
+  }catch(e){thinking.remove();addChatMsg('ai','エラー: '+e.message)}
+}
+
+// ════════════════════════════════════════════
+//  アクション (PDF/リセット)
+// ════════════════════════════════════════════
+function actionsHTML(){
+  return `<div style="display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-accent" onclick="shareResult()">📤 結果を仲間にシェア</button>
+    <button class="btn btn-outline" onclick="downloadPDF()">📄 レポートをPDF保存</button>
+    <button class="btn btn-outline" onclick="goHome()">🏠 ホームに戻る</button></div>`;
+}
+function shareResult(){
+  const r=state.result;if(!r)return;
+  const m=MODULES[state.module];
+  const score=scoreOf(r),label=labelOf(r);
+  let text=`🏐 ソフトバレー競技力研究所で診断しました！\n【${m.title}】\n`;
+  if(score!=null)text+=`スコア: ${score}/100\n`;
+  const nick=r.competitive_type_nickname||r.type_nickname;
+  if(label)text+=`タイプ: ${label}${nick?`「${nick}」`:''}\n`;
+  const pr=r.top_priority||r.main_limiter||r.main_factor||r.biggest_win_factor||r.headline||'';
+  if(pr)text+=`最優先課題: ${String(pr).slice(0,70)}\n`;
+  text+=`#ソフトバレー #競技力診断`;
+  if(navigator.share){
+    navigator.share({text}).catch(()=>{});
+  }else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>alert('結果をコピーしました！\nLINEやSNSに貼り付けてシェアできます 🏐'));
+  }else{
+    prompt('以下をコピーしてシェアしてください',text);
+  }
+}
+function downloadPDF(){
+  const r=state.result;if(!r)return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',format:'a4'});
+  const m=MODULES[state.module];
+  doc.setFont('helvetica');
+  doc.setFontSize(18);doc.setTextColor(85,37,131);
+  doc.text('Soft Volleyball Performance OS',105,22,{align:'center'});
+  doc.setFontSize(13);doc.setTextColor(107,122,141);
+  doc.text(m.title+' Report',105,32,{align:'center'});
+  doc.text(new Date().toLocaleDateString('ja-JP'),105,39,{align:'center'});
+  doc.setDrawColor(85,37,131);doc.line(20,44,190,44);
+  // 主要スコア
+  let y=58;
+  const mainScore=r.total_score||r.longevity_score||r.win_rate_score||r.efficiency_score||r.overall_risk_score;
+  if(mainScore!==undefined){
+    doc.setFontSize(38);doc.setTextColor(253,185,39);
+    doc.text(String(mainScore),105,y,{align:'center'});
+    doc.setFontSize(12);doc.setTextColor(85,37,131);
+    doc.text('Main Score',105,y+10,{align:'center'});y+=26;
+  }
+  // タイプ
+  const typeText=r.competitive_type||r.jump_type||r.player_type||r.primary_type||r.shoe_type||r.fatigue_type||r.training_status;
+  if(typeText){doc.setFontSize(13);doc.setTextColor(85,37,131);doc.text('Type: '+toAscii(typeText),105,y,{align:'center'});y+=14}
+  // 全文をJSONダンプ(日本語は文字化けするためASCII要約のみ。詳細はアプリで確認)
+  doc.setFontSize(9);doc.setTextColor(80,80,80);
+  doc.text('* Full Japanese report is available in the app.',20,y);y+=8;
+  doc.text('* This PDF contains scores only (font limitation).',20,y);
+  doc.save(`${state.module}-report.pdf`);
+}
+function toAscii(s){return s.replace(/[^\x00-\x7F]/g,'')||'(see app)'}
+
+// ════════════════════════════════════════════
+//  モジュール10: AI競技日誌
+// ════════════════════════════════════════════
+function getJournal(){try{return JSON.parse(localStorage.getItem('sv_journal')||'[]')}catch{return[]}}
+function saveJournal(j){localStorage.setItem('sv_journal',JSON.stringify(j))}
+
+function renderJournal(){
+  const entries=getJournal();
+  const today=new Date().toISOString().slice(0,10);
+  const rows=entries.slice().reverse().map(e=>`<tr><td>${e.date.slice(5)}</td><td>${e.sleep}</td><td>${e.fatigue}</td><td>${e.weight||'-'}</td><td>${e.mood}</td><td style="font-size:10px">${e.practice||'-'}</td></tr>`).join('');
+  document.getElementById('formView').innerHTML=`
+    <div class="card fade-in"><div class="section-title">📔 今日の記録</div>
+      <div class="form-group"><label class="form-label">日付</label><input class="form-control" type="date" id="j_date" value="${today}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">睡眠時間(h)</label><input class="form-control" type="number" id="j_sleep" step="0.5" placeholder="7"></div>
+        <div class="form-group"><label class="form-label">体重(kg)</label><input class="form-control" type="number" id="j_weight" step="0.1" placeholder="68"></div>
+      </div>
+      <div class="form-group"><label class="form-label">疲労度 (0=絶好調 〜 10=限界)</label><div class="range-wrap"><input type="range" id="j_fatigue" min="0" max="10" value="5" oninput="document.getElementById('jrv_fatigue').textContent=this.value"><span class="range-val" id="jrv_fatigue">5</span></div></div>
+      <div class="form-group"><label class="form-label">気分・調子 (0=最悪 〜 10=最高)</label><div class="range-wrap"><input type="range" id="j_mood" min="0" max="10" value="6" oninput="document.getElementById('jrv_mood').textContent=this.value"><span class="range-val" id="jrv_mood">6</span></div></div>
+      <div class="form-group"><label class="form-label">今日の練習</label><select class="form-control" id="j_practice"><option value="">選択</option><option>休養</option><option>軽め</option><option>普通</option><option>ハード</option><option>試合</option></select></div>
+      <div class="form-group"><label class="form-label">メモ</label><textarea class="form-control" id="j_note" placeholder="調子の良し悪し、気づいたこと..."></textarea></div>
+      <button class="btn btn-primary" onclick="addJournalEntry()">💾 記録する</button>
+    </div>
+    <div class="card"><div class="section-title">📊 推移グラフ</div>
+      ${entries.length>=2?'<div class="chart-wrap" style="height:240px;max-width:100%"><canvas id="journalChart"></canvas></div>':'<div class="empty-note">2日分以上記録するとグラフが表示されます</div>'}
+    </div>
+    <div class="card"><div class="section-title">📋 記録一覧 (${entries.length}日分)</div>
+      ${entries.length?`<table class="journal-table"><thead><tr><th>日付</th><th>睡眠</th><th>疲労</th><th>体重</th><th>気分</th><th>練習</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty-note">まだ記録がありません</div>'}
+    </div>
+    ${entries.length>=3?`<div class="card"><div class="section-title">🤖 AI推移分析</div><button class="btn btn-accent" onclick="analyzeJournal()" id="jAnalyzeBtn">AIに推移を分析してもらう</button><div id="journalAnalysis" style="margin-top:14px;font-size:14px;line-height:1.8;white-space:pre-wrap"></div></div>`:''}
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${entries.length?'<button class="btn btn-outline" onclick="clearJournal()">🗑️ 記録を全削除</button>':''}
+      <button class="btn btn-outline" onclick="goHome()">🏠 ホームに戻る</button></div>`;
+  show('formView');
+  if(entries.length>=2)drawJournalChart(entries);
+}
+function addJournalEntry(){
+  const date=document.getElementById('j_date').value;
+  if(!date){alert('日付を入力してください');return}
+  const entry={date,sleep:document.getElementById('j_sleep').value||'-',weight:document.getElementById('j_weight').value,fatigue:document.getElementById('j_fatigue').value,mood:document.getElementById('j_mood').value,practice:document.getElementById('j_practice').value,note:document.getElementById('j_note').value};
+  let j=getJournal();
+  j=j.filter(e=>e.date!==date); // 同日付は上書き
+  j.push(entry);
+  j.sort((a,b)=>a.date.localeCompare(b.date));
+  saveJournal(j);
+  renderJournal();
+}
+function clearJournal(){if(confirm('全ての記録を削除しますか？')){localStorage.removeItem('sv_journal');renderJournal()}}
+function drawJournalChart(entries){
+  const ctx=document.getElementById('journalChart');if(!ctx)return;
+  const labels=entries.map(e=>e.date.slice(5));
+  new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'睡眠(h)',data:entries.map(e=>parseFloat(e.sleep)||null),borderColor:'#3498db',backgroundColor:'transparent',tension:.3,yAxisID:'y'},
+    {label:'疲労度',data:entries.map(e=>parseInt(e.fatigue)),borderColor:'#e74c3c',backgroundColor:'transparent',tension:.3,yAxisID:'y'},
+    {label:'気分',data:entries.map(e=>parseInt(e.mood)),borderColor:'#2ecc71',backgroundColor:'transparent',tension:.3,yAxisID:'y'}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},scales:{y:{min:0,max:11,ticks:{stepSize:2}}},plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+}
+async function analyzeJournal(){
+  const btn=document.getElementById('jAnalyzeBtn');
+  const out=document.getElementById('journalAnalysis');
+  btn.disabled=true;btn.textContent='分析中...';
+  try{
+    const res=await fetch(API+'/api/journal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entries:getJournal()})});
+    const data=await res.json();
+    out.textContent=data.success?data.analysis:('エラー: '+data.error);
+  }catch(e){out.textContent='エラー: '+e.message}
+  btn.disabled=false;btn.textContent='再分析する';
+}
+
+// ════════════════════════════════════════════
+//  初期化
+// ════════════════════════════════════════════
+renderDashboard();
+fetch(API+'/health').then(r=>r.json()).then(d=>{
+  if(!d.api_key_configured)document.getElementById('keyBanner').classList.remove('hidden');
+}).catch(()=>{});
+</script>
+
+</body>
+</html>
