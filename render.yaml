@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: soft-volleyball-ai
+    runtime: python
+    plan: free
+    buildCommand: ""
+    startCommand: python3 server.py
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
