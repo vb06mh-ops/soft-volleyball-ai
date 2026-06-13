@@ -36,10 +36,26 @@ python3 server.py
 # → http://localhost:8080
 ```
 
-## Renderへのデプロイ（無料）
+## Cloudflare Pages へのデプロイ（無料・推奨）
 
-1. このリポジトリをGitHubに置く
-2. [Render](https://render.com) にGitHubでログイン
-3. New + → Blueprint → このリポジトリを選択
-4. 環境変数 `GEMINI_API_KEY` に Google AI Studio の無料キーを設定
-5. デプロイ完了 → `https://soft-volleyball-ai.onrender.com`
+スリープなし・世界規模の高速配信・DDoS/WAF防御つき。バックエンドは `functions/` のPages Functions（JavaScript）。
+
+1. このリポジトリをGitHubに置く（済）
+2. [Cloudflare](https://dash.cloudflare.com) に無料登録 → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
+3. リポジトリ `soft-volleyball-ai` を選択
+4. ビルド設定: フレームワーク=なし / ビルドコマンド=空 / 出力ディレクトリ=`/`（ルート）
+5. **環境変数** に `GEMINI_API_KEY` = Google AI Studio の無料キー を追加
+6. Deploy → `https://soft-volleyball-ai.pages.dev` で公開
+
+### ローカルでCloudflare環境を再現
+```bash
+export GEMINI_API_KEY="あなたのキー"
+npx wrangler pages dev . --port 8788
+# → http://localhost:8788
+```
+
+## 構成（単一データソース）
+- `index.html` … フロント（静的）
+- `functions/api/*.js` … バックエンド（Gemini呼び出し・全プロンプト）
+- `shoes.json` … シューズDB（**ここを編集するだけで推薦対象を更新**。フロント/バックの両方が参照）
+- `server.py` … ローカル開発用のPython版（Cloudflareでは未使用）
