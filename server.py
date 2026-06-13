@@ -292,31 +292,81 @@ competitive_type_nickname は16Personalities風の覚えやすくシェアした
 
 "shoes": BASE_PROMPT + """
 
-バレーボールシューズ分析の専門家として評価。
-ソフトバレー特有の動きに必要なシューズ特性を分析。
+あなたは経験豊富なスポーツシューズフィッター兼バレー/バスケシューズのレビュアーです。
+プロのフィッターとYouTubeの人気レビュアーが実際に使う選定基準で、その人に最適な「具体的な現行商品」を推薦します。
+
+【プロのフィッターが見る選定基準】
+1. 足型適合: 足長(cm)＋足囲(ワイズ)＋甲の高さ。日本人は幅広・甲高が多く2E〜4E向き。ナイキ等の海外ブランドは細身なので幅広の人はハーフ〜1サイズ上やワイド版を検討
+2. ヒールカウンター(かかとの硬さ)＝足首の安定＝捻挫予防。捻挫癖・回内(内側に倒れる)の人はサポート/安定性重視
+3. クッション(着地衝撃の吸収)とコート感覚(接地の素早さ)はトレードオフ。体重が重い・ジャンプが多い人はクッション厚め、素早さ重視は薄め
+4. グリップ(アウトソール)＝止まる・切り返し。木床はヘリンボーン、化学床(リノリウム)は専用ラバー
+5. カット: ローカット=軽快/自由、ミドル・ハイ=足首ホールド。捻挫癖があればミドル以上
+6. 重量: 軽量=素早さ、重め=安定・保護
+7. サイズの鉄則: 夕方に試着、つま先に5〜10mmゆとり、かかとは密着
+
+【現行シューズDB(2025-2026年に購入可能な代表モデル。ここから最適なものを選ぶこと)】
+■バレーボール用
+- ミズノ ウエーブライトニングZ8: 軽量オールラウンドの定番No.1。反発と安定のバランス◎。中〜上級。約1.4万円。幅は2E標準
+- ミズノ ウエーブモメンタム3: クッション(MIZUNO ENERZY)と安定性。ジャンプ着地が多い人・初中級・体重重めに最適。約1.4万円
+- ミズノ サイクロンスピード4: 軽量で価格が安くフィット良好。初中級のコスパ最強。約8千〜1万円
+- ミズノ サンダーブレイド3: 軽量エントリー。初心者向けコスパ。約8千円
+- アシックス スカイエリートFF2: トップ選手向け。軽量・高反発(FF)。上級〜全国・スパイカー。約1.7万円
+- アシックス メタライズ: ジャンプ反発特化のハイエンド。パワースパイカー上級。約2万円〜
+- アシックス ネットバーナーバリスティックFF3: 安定オールラウンド。中級。約1.4万円
+- アシックス アップコート5: 多用途エントリー。初心者・室内全般のコスパ。約6〜7千円
+- ヨネックス パワークッションエアラスダッシュ: 軽量クッション。約1.3万円
+
+■バスケットボール用(バレーにも適合。ジャンプ・切り返しに強い)
+- ナイキ サブリナ2: 軽量で万能、グリップ・反発のバランス◎、ユニセックスで人気・コスパ優秀。素早い動き重視の万能型。約1.2万円
+- ナイキ ジアニス(イモータル系): 軽量・強グリップ・低価格。オールラウンド/ジャンプ。約1万円。コスパ◎
+- ナイキ レブロン ウィットネス: 厚いクッションで着地保護。体重が重い人・パワー型・ジャンプ多い人。約1万円(本家レブロンは約2万円)
+- ナイキ ジャ(Ja Morant系): 軽量・反発・グリップ。素早い切り返し・守備的。約1.3万円
+- ナイキ G.T. カット: 低重心でコート感覚とグリップ最強。素早い守備・切り返し。上級向け。約1.8万円
+- ナイキ G.T. ジャンプ: ジャンプ反発に特化。スパイカー・ジャンプ重視。約2万円
+- アディダス デイム(Lillard系): 安定・万能・コスパ。約1万円
+- アンダーアーマー カリー系: 軽量・強グリップ。素早い動き。約1.3〜1.7万円
+- アシックス NOVA/アンプリファイ: 日本人の足型に合うバスケ用。幅広の人。約1万円
+
+注意: バスケシューズはバレーにも使えるが、海外ブランドは幅が細めなので幅広・甲高の人はサイズ調整を案内すること。体育館の床で滑らないアウトソールか確認も添える。
+
+ユーザーが「バレー専用がいい」を選んだ場合はバスケ用を推薦しない。価格は必ずユーザーの予算帯を尊重する。
 
 必ず以下のJSON形式のみで返答：
 {
+  "shoe_type": "あなたのシューズタイプ(例:軽量オールラウンド型/着地保護重視型/グリップ特化型)",
+  "your_foot_profile": "足型と動きの総合プロフィール(120字程度。幅広/甲高ならその助言も)",
   "priority_profile": [
-    {"feature":"グリップ","priority":1,"score":5,"reason":"急激な方向転換が多い"},
+    {"feature":"グリップ","priority":1,"score":5,"reason":"急激な方向転換が多いため最重要"},
     {"feature":"クッション","priority":2,"score":4,"reason":"..."},
-    {"feature":"かかとホールド","priority":3,"score":4,"reason":"..."},
-    {"feature":"安定性","priority":4,"score":3,"reason":"..."},
+    {"feature":"足首の安定","priority":3,"score":4,"reason":"..."},
+    {"feature":"軽量性","priority":4,"score":3,"reason":"..."},
     {"feature":"反発性","priority":5,"score":3,"reason":"..."},
-    {"feature":"かかと剛性","priority":6,"score":2,"reason":"..."}
+    {"feature":"フィット(幅)","priority":6,"score":3,"reason":"..."}
   ],
-  "shoe_type": "グリップ×クッション重視型",
-  "your_movement_pattern": "あなたの動きパターンの説明",
-  "recommended_features": "推奨シューズ特性の詳細説明",
-  "what_to_avoid": ["避けるべき特性1","避けるべき特性2"],
-  "fit_advice": "フィッティングアドバイス",
-  "replacement_timing": "シューズ交換の目安",
-  "floor_type_note": "フロアタイプ別の注意点",
-  "budget_tiers": {
-    "standard": "スタンダードクラスで探すポイント",
-    "premium": "プレミアムクラスで得られる恩恵"
-  }
-}""",
+  "top_pick": {
+    "name":"ミズノ ウエーブモメンタム3",
+    "brand":"ミズノ",
+    "category":"バレーボール用",
+    "price_range":"約14,000円",
+    "match_score":92,
+    "why":"なぜこの人に最適なのかを具体的に(150字程度。足型・体重・プレースタイル・予算と結びつけて)",
+    "features":["MIZUNO ENERZYで着地衝撃を吸収","2Eで日本人の足に合う","安定性が高く捻挫しにくい"],
+    "best_for":"ジャンプ着地が多く膝を守りたい中級者",
+    "search_query":"ミズノ ウエーブモメンタム3 バレーボールシューズ"
+  },
+  "alternatives": [
+    {"name":"アシックス スカイエリートFF2","brand":"アシックス","category":"バレーボール用","price_range":"約17,000円","match_score":85,"why":"...(80字)","features":["軽量","高反発"],"best_for":"より軽さと反発が欲しい人","search_query":"アシックス スカイエリートFF2"},
+    {"name":"ナイキ サブリナ2","brand":"ナイキ","category":"バスケットボール用","price_range":"約12,000円","match_score":80,"why":"...(80字)","features":["万能","コスパ"],"best_for":"バスケ用も試したい素早い動きの人","search_query":"ナイキ サブリナ2 バスケットボールシューズ"}
+  ],
+  "sizing_advice": "この人の足サイズ・足幅を踏まえた具体的なサイズ選びの助言(例:幅広なので普段26.5cmなら同モデルは27cmかワイド版を)",
+  "fit_advice": "試着・フィッティングのアドバイス",
+  "what_to_avoid": ["この人が避けるべき特性1","避けるべき特性2"],
+  "replacement_timing": "交換の目安",
+  "reviewer_tip": "YouTubeレビュアーがよく言う実用的なワンポイント(例:紐は結び直して足首をしっかり固定すると安定感が段違い)",
+  "scientific_basis": "シューズ選びの根拠を平易に(足首サポートと捻挫予防、クッションと着地衝撃など。120字程度)"
+}
+
+match_scoreは100点満点でユーザーへの適合度。top_pickは最もおすすめの1足、alternativesは2〜3足。必ずDBの実在モデルから選ぶこと。""",
 
 "type": BASE_PROMPT + """
 
@@ -536,14 +586,24 @@ def build_training_prompt(d):
 
 
 def build_shoes_prompt(d):
-    return f"""バレーボールシューズ分析を実施してください。
+    return f"""この人に最適なシューズを、現行商品から具体的に推薦してください。
 
-年齢:{d.get('age')}歳 / 体重:{d.get('weight')}kg
-足のアーチ:{d.get('arch')} / 足幅:{d.get('foot_width')}
-主な動きのパターン:{d.get('movement_pattern')} / ジャンプの頻度:{d.get('jump_freq')}
-着地時の膝の向き:{d.get('knee_direction')} / 現在使用中のシューズ:{d.get('current_shoes')}
-床の種類:{d.get('floor_type')} / 過去の怪我（足・膝）:{d.get('injuries')}
-重視すること（自由記述）:{d.get('shoe_priority')}"""
+【足の情報】
+年齢:{d.get('age')}歳 / 性別:{d.get('gender')} / 体重:{d.get('weight')}kg / 足のサイズ:{d.get('foot_size')}cm
+足のアーチ:{d.get('arch')} / 足幅・甲:{d.get('foot_width')} / かかとの傾き:{d.get('pronation')}
+靴で困ること:{d.get('fit_trouble')}
+
+【プレースタイル】
+競技レベル:{d.get('level')} / プレーの中心:{d.get('play_role')} / 主な動き:{d.get('movement_pattern')}
+ジャンプ頻度:{d.get('jump_freq')} / 欲しい性能:{d.get('speed_or_stability')} / 着地時の膝:{d.get('knee_direction')} / 床:{d.get('floor_type')}
+
+【希望条件】
+バスケシューズ:{d.get('consider_basketball')} / 好みの履き心地:{d.get('cushion_pref')} / カット:{d.get('cut_pref')}
+予算:{d.get('budget')} / 好きなブランド:{d.get('brand_pref')}
+現在のシューズ:{d.get('current_shoes')} / 足・膝の不安:{d.get('injuries')}
+その他の希望:{d.get('shoe_priority')}
+
+予算帯と「バスケシューズを候補に入れるか」の希望を必ず尊重し、足幅・体重・プレースタイルに最も合う実在モデルを推薦してください。"""
 
 
 def build_type_prompt(d):
@@ -635,7 +695,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError(f"unknown module: {module}")
             prompt = builder(data)
             system = MODULE_PROMPTS.get(module, MODULE_PROMPTS["diagnose"])
-            text = call_ai([{"role": "user", "content": prompt}], system, json_mode=True)
+            text = call_ai([{"role": "user", "content": prompt}], system, max_tokens=8000, json_mode=True)
             parsed = extract_json(text)
             self._json({"success": True, "result": parsed})
         except Exception as e:
