@@ -52,6 +52,23 @@ def _load_api_key():
 
 API_KEY = _load_api_key()
 
+# ── シューズDB読み込み（shoes.json を編集するだけで更新可能） ──
+def _load_shoe_catalog():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shoes.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        lines = []
+        for s in data.get("shoes", []):
+            lines.append(f"・{s['brand']} {s['name']}（{s['cat']}/約{s['price']:,}円/幅:{s.get('width','標準')}/{s.get('level','')}）：{s.get('traits','')}。向き:{s.get('for','')}")
+        return f"（最終更新 {data.get('lastUpdated','')} ／ 全{len(lines)}モデル）\n" + "\n".join(lines)
+    except Exception as e:
+        print("shoes.json 読み込み失敗:", e)
+        return "（シューズDB読込エラー）"
+
+SHOE_CATALOG = _load_shoe_catalog()
+
+
 # ─────────────────────────────────────────────
 # ベースシステムプロンプト
 # ─────────────────────────────────────────────
@@ -304,28 +321,8 @@ competitive_type_nickname は16Personalities風の覚えやすくシェアした
 6. 重量: 軽量=素早さ、重め=安定・保護
 7. サイズの鉄則: 夕方に試着、つま先に5〜10mmゆとり、かかとは密着
 
-【現行シューズDB(2025-2026年に購入可能な代表モデル。ここから最適なものを選ぶこと)】
-■バレーボール用
-- ミズノ ウエーブライトニングZ8: 軽量オールラウンドの定番No.1。反発と安定のバランス◎。中〜上級。約1.4万円。幅は2E標準
-- ミズノ ウエーブモメンタム3: クッション(MIZUNO ENERZY)と安定性。ジャンプ着地が多い人・初中級・体重重めに最適。約1.4万円
-- ミズノ サイクロンスピード4: 軽量で価格が安くフィット良好。初中級のコスパ最強。約8千〜1万円
-- ミズノ サンダーブレイド3: 軽量エントリー。初心者向けコスパ。約8千円
-- アシックス スカイエリートFF2: トップ選手向け。軽量・高反発(FF)。上級〜全国・スパイカー。約1.7万円
-- アシックス メタライズ: ジャンプ反発特化のハイエンド。パワースパイカー上級。約2万円〜
-- アシックス ネットバーナーバリスティックFF3: 安定オールラウンド。中級。約1.4万円
-- アシックス アップコート5: 多用途エントリー。初心者・室内全般のコスパ。約6〜7千円
-- ヨネックス パワークッションエアラスダッシュ: 軽量クッション。約1.3万円
-
-■バスケットボール用(バレーにも適合。ジャンプ・切り返しに強い)
-- ナイキ サブリナ2: 軽量で万能、グリップ・反発のバランス◎、ユニセックスで人気・コスパ優秀。素早い動き重視の万能型。約1.2万円
-- ナイキ ジアニス(イモータル系): 軽量・強グリップ・低価格。オールラウンド/ジャンプ。約1万円。コスパ◎
-- ナイキ レブロン ウィットネス: 厚いクッションで着地保護。体重が重い人・パワー型・ジャンプ多い人。約1万円(本家レブロンは約2万円)
-- ナイキ ジャ(Ja Morant系): 軽量・反発・グリップ。素早い切り返し・守備的。約1.3万円
-- ナイキ G.T. カット: 低重心でコート感覚とグリップ最強。素早い守備・切り返し。上級向け。約1.8万円
-- ナイキ G.T. ジャンプ: ジャンプ反発に特化。スパイカー・ジャンプ重視。約2万円
-- アディダス デイム(Lillard系): 安定・万能・コスパ。約1万円
-- アンダーアーマー カリー系: 軽量・強グリップ。素早い動き。約1.3〜1.7万円
-- アシックス NOVA/アンプリファイ: 日本人の足型に合うバスケ用。幅広の人。約1万円
+【現行シューズDB（常に最新へ更新。必ずこの中から最適なモデルを選ぶこと）】
+<<SHOE_CATALOG>>
 
 注意: バスケシューズはバレーにも使えるが、海外ブランドは幅が細めなので幅広・甲高の人はサイズ調整を案内すること。体育館の床で滑らないアウトソールか確認も添える。
 
@@ -437,6 +434,8 @@ type_nickname は16Personalities風の覚えやすくシェアしたくなる二
 ソフトバレーの鉄則「強打よりコントロール」「サーブは威力より狙い」「ラリーを制する者が試合を制す」を分析の軸にすること。""",
 
 }
+
+MODULE_PROMPTS["shoes"] = MODULE_PROMPTS["shoes"].replace("<<SHOE_CATALOG>>", SHOE_CATALOG)
 
 CHAT_SYSTEM = BASE_PROMPT + "\n\n診断結果を踏まえた追加質問に、具体的かつ根拠に基づいて日本語で答えてください。回答は300字以内で簡潔に。"
 JOURNAL_SYSTEM = BASE_PROMPT + "\n\n競技日誌データから選手のコンディション推移を分析し、洞察と改善提案を日本語で提供してください。"
@@ -655,10 +654,26 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         print(f"  {self.address_string()} {fmt % args}")
 
+    def client_ip(self):
+        # Cloudflare/Render等のプロキシ経由でも実IPを取得
+        fwd = self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For", "")
+        return fwd.split(",")[0].strip() or self.client_address[0]
+
     def cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def security_headers(self):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+        self.send_header("Content-Security-Policy",
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+            "connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'")
 
     def do_OPTIONS(self):
         self.send_response(200); self.cors(); self.end_headers()
@@ -674,8 +689,20 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        # レート制限（1IPあたりの過剰アクセスを遮断＝無料枠の悪用・DoS対策）
+        if is_rate_limited(self.client_ip()):
+            self._json({"success": False, "error": "アクセスが集中しています。少し時間をおいてください。"}, 429)
+            return
         length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length)) if length else {}
+        # ボディサイズ上限（巨大リクエスト拒否）
+        if length > MAX_BODY_SIZE:
+            self._json({"success": False, "error": "リクエストが大きすぎます。"}, 413)
+            return
+        try:
+            body = json.loads(self.rfile.read(length)) if length else {}
+        except Exception:
+            self._json({"success": False, "error": "不正なリクエストです。"}, 400)
+            return
 
         if path == "/api/analyze":
             self._handle_analyze(body)
@@ -687,8 +714,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(404); self.end_headers()
 
     def _handle_analyze(self, body):
-        module = body.get("module", "diagnose")
-        data = body.get("data", {})
+        module = str(body.get("module", "diagnose"))[:40]
+        data = sanitize_data(body.get("data", {}))
         try:
             builder = PROMPT_BUILDERS.get(module)
             if not builder:
@@ -709,7 +736,15 @@ class Handler(BaseHTTPRequestHandler):
 
     def _handle_chat(self, body):
         try:
-            messages = body.get("messages", [])
+            raw = body.get("messages", [])
+            if not isinstance(raw, list):
+                raw = []
+            # 履歴の件数・各発言の長さを制限（プロンプト肥大・悪用対策）
+            messages = []
+            for m in raw[-MAX_CHAT_MESSAGES:]:
+                if isinstance(m, dict):
+                    role = "assistant" if m.get("role") == "assistant" else "user"
+                    messages.append({"role": role, "content": str(m.get("content", ""))[:4000]})
             text = call_ai(messages, CHAT_SYSTEM, max_tokens=600)
             self._json({"success": True, "message": text})
         except Exception as e:
@@ -732,7 +767,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", len(content))
-            self.cors(); self.end_headers()
+            self.cors(); self.security_headers(); self.end_headers()
             self.wfile.write(content)
         except FileNotFoundError:
             self.send_response(404); self.end_headers()
@@ -742,7 +777,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", len(body))
-        self.cors(); self.end_headers()
+        self.cors(); self.security_headers(); self.end_headers()
         self.wfile.write(body)
 
 
