@@ -145,6 +145,24 @@ textarea.form-control{min-height:72px;resize:vertical}
 .step-dot{flex:1;height:4px;border-radius:2px;background:var(--border)}
 .step-dot.active{background:var(--primary)}
 .step-dot.done{background:var(--accent)}
+/* ===== シューズ商品カード ===== */
+.shoe-card{border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:12px;background:#fff}
+.shoe-card:last-child{margin-bottom:0}
+.shoe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.shoe-name{font-size:16px;font-weight:800;color:var(--primary);line-height:1.3}
+.shoe-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.shoe-match{text-align:center;flex-shrink:0;background:var(--primary);color:#fff;border-radius:10px;padding:6px 10px;min-width:54px}
+.shoe-match-num{font-size:20px;font-weight:900;line-height:1}
+.shoe-match-lbl{font-size:9px;opacity:.85}
+.shoe-why{font-size:13.5px;line-height:1.7;margin-bottom:10px}
+.shoe-feats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.shoe-feat{font-size:11px;background:#f2ebfb;color:var(--primary);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-weight:600}
+.shoe-best{font-size:12px;color:#555;margin-bottom:12px;background:#faf6ff;border-radius:8px;padding:8px 10px}
+.shoe-buy{display:flex;gap:8px}
+.buy-btn{flex:1;text-align:center;padding:11px 8px;border-radius:9px;font-size:13.5px;font-weight:800;text-decoration:none;transition:transform .15s}
+.buy-btn:active{transform:scale(.97)}
+.buy-amazon{background:#ff9900;color:#1a1a1a}
+.buy-rakuten{background:#bf0000;color:#fff}
 /* ===== パーソナルホーム ===== */
 .status-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
 .greet{font-size:14px;color:var(--muted);font-weight:600}
@@ -386,19 +404,37 @@ const FORMS = {
     {id:'goal',label:'目標',type:SEL,opts:opt('健康維持','チーム貢献','大会上位','全国レベル')},
   ]}]},
 
-  shoes:{steps:[{title:'👟 シューズ分析',fields:[
-    {id:'age',label:'年齢',type:NUM,ph:'42',half:1},
-    {id:'weight',label:'体重(kg)',type:NUM,ph:'68',half:1},
-    {id:'arch',label:'足のアーチ',type:SEL,opts:opt('高い(ハイアーチ)','普通','低い(扁平足気味)','分からない'),half:1},
-    {id:'foot_width',label:'足幅',type:SEL,opts:opt('細い','普通','広い','分からない'),half:1},
-    {id:'movement_pattern',label:'主な動き',type:SEL,opts:opt('前後の動き多い','左右の動き多い','ジャンプ多い','レシーブで低い姿勢多い')},
-    {id:'jump_freq',label:'ジャンプ頻度',type:SEL,opts:opt('多い','普通','少ない'),half:1},
-    {id:'knee_direction',label:'着地時の膝',type:SEL,opts:opt('真っ直ぐ','内側に入る','分からない'),half:1},
-    {id:'floor_type',label:'床の種類',type:SEL,opts:opt('体育館の木床','化学床(リノリウム)','様々')},
-    {id:'current_shoes',label:'現在のシューズ',type:TXT,ph:'例:ミズノ ウエーブ...、特にこだわりなし'},
-    {id:'injuries',label:'足・膝の怪我歴',type:TXT,ph:'例:足首捻挫の癖、特になし'},
-    {id:'shoe_priority',label:'重視すること',type:TXT,ph:'例:とにかく滑らない、膝への負担を減らしたい...'},
-  ]}]},
+  shoes:{steps:[
+    {title:'👣 足の情報',fields:[
+      {id:'age',label:'年齢',type:NUM,ph:'42',half:1},
+      {id:'weight',label:'体重(kg)',type:NUM,ph:'68',half:1},
+      {id:'foot_size',label:'足のサイズ(cm)',type:NUM,ph:'26.5',step:'0.5',req:1,half:1},
+      {id:'gender',label:'性別',type:SEL,opts:opt('男性','女性'),half:1},
+      {id:'arch',label:'足のアーチ',type:SEL,opts:opt('高い(ハイアーチ)','普通','低い(扁平足気味)','分からない'),half:1},
+      {id:'foot_width',label:'足幅・甲',type:SEL,opts:opt('細い/低い','普通','広い/甲高','分からない'),half:1},
+      {id:'pronation',label:'かかとの傾き(立った時)',type:SEL,opts:opt('内側に倒れる(回内)','まっすぐ','外側に倒れる(回外)','分からない')},
+      {id:'fit_trouble',label:'いつも靴で困ること',type:SEL,opts:opt('小指が当たる/きつい','かかとが浮く','甲が圧迫される','幅が余る','特になし')},
+    ]},
+    {title:'🏐 プレースタイル',fields:[
+      {id:'level',label:'競技レベル',type:SEL,opts:opt('初心者','中級者','上級者','全国レベル'),half:1},
+      {id:'play_role',label:'プレーの中心',type:SEL,opts:opt('スパイク・攻撃','レシーブ・守備','トス・つなぎ','オールラウンド'),half:1},
+      {id:'movement_pattern',label:'主な動き',type:SEL,opts:opt('前後の動き多い','左右の切り返し多い','ジャンプ多い','低い姿勢のレシーブ多い')},
+      {id:'jump_freq',label:'ジャンプ頻度',type:SEL,opts:opt('とても多い','多い','普通','少ない'),half:1},
+      {id:'speed_or_stability',label:'欲しい性能',type:SEL,opts:opt('とにかく軽く素早く','安定・足首の保護','着地のクッション','バランス重視'),half:1},
+      {id:'knee_direction',label:'着地時の膝',type:SEL,opts:opt('真っ直ぐ','内側に入りがち','分からない'),half:1},
+      {id:'floor_type',label:'床の種類',type:SEL,opts:opt('体育館の木床','化学床(リノリウム)','様々'),half:1},
+    ]},
+    {title:'🎯 希望条件',fields:[
+      {id:'consider_basketball',label:'バスケシューズも候補に入れる？',type:SEL,opts:opt('入れたい(グリップ/クッション重視)','バレー専用がいい','どちらでも好きな方'),req:1},
+      {id:'cushion_pref',label:'好みの履き心地',type:SEL,opts:opt('フカフカ(衝撃吸収)','地面を感じる(素早さ)','中間がいい','分からない'),half:1},
+      {id:'cut_pref',label:'カットの高さ',type:SEL,opts:opt('ローカット(軽快)','ミドル/ハイ(足首保護)','こだわらない'),half:1},
+      {id:'budget',label:'予算',type:SEL,opts:opt('〜8千円(コスパ)','8千〜1.5万円(標準)','1.5万〜2.5万円(高機能)','価格より性能優先')},
+      {id:'brand_pref',label:'好きな/気になるブランド',type:SEL,opts:opt('特になし(おまかせ)','ミズノ','アシックス','ナイキ','アディダス','その他')},
+      {id:'current_shoes',label:'今使っているシューズ',type:TXT,ph:'例:ミズノ ウエーブモメンタム、特にこだわりなし'},
+      {id:'injuries',label:'足・膝の不安/怪我歴',type:TXT,ph:'例:足首捻挫の癖、膝が痛む、特になし'},
+      {id:'shoe_priority',label:'その他の希望(自由)',type:TXT,ph:'例:とにかく滑らない、見た目も大事、ワイドモデル希望...'},
+    ]},
+  ]},
 
   type:{steps:[{title:'🧬 競技タイプ診断',fields:[
     {id:'age',label:'年齢',type:NUM,ph:'42',half:1},
@@ -742,6 +778,36 @@ function bar(label,val,color){return `<div class="compare-row"><div class="compa
 function list(items,icon){return `<ul class="insight-list">${(items||[]).map(t=>`<li><span class="ic">${icon}</span><span>${t}</span></li>`).join('')}</ul>`}
 function plan(items){return (items||[]).map((t,i)=>`<div class="plan-item"><div class="plan-num">${i+1}</div><div class="plan-text">${typeof t==='string'?t:(t.week?`<b>第${t.week}週: ${t.focus}</b><br>${(t.training||[]).join(' / ')}<br><small style="color:var(--muted)">${t.note||''}</small>`:JSON.stringify(t))}</div></div>`).join('')}
 function stars(n){let s='';for(let i=0;i<5;i++)s+=i<n?'★':'<span class="star-empty">★</span>';return `<span class="stars">${s}</span>`}
+// ===== シューズ商品カード＋アフィリエイトリンク =====
+const AMAZON_TAG='best0item6lis-22';
+const RAKUTEN_ID='4fb5c6ce.a3256dce.4fb5c6cf.a651636c';
+function amazonLink(q){return `https://www.amazon.co.jp/s?k=${encodeURIComponent(q)}&tag=${AMAZON_TAG}`}
+function rakutenLink(q){
+  const inner=`https://search.rakuten.co.jp/search/mall/${encodeURIComponent(q)}/`;
+  return `https://hb.afl.rakuten.co.jp/ichiba/${RAKUTEN_ID}/?pc=${encodeURIComponent(inner)}`;
+}
+function shoeCard(s,isTop){
+  if(!s)return '';
+  const q=s.search_query||s.name||'';
+  const feats=(s.features||[]).map(f=>`<span class="shoe-feat">${f}</span>`).join('');
+  return `<div class="shoe-card">
+    <div class="shoe-head">
+      <div>
+        <div class="shoe-name">${s.name||''}</div>
+        <div class="shoe-meta">${s.brand||''} ／ ${s.category||''} ／ <b>${s.price_range||''}</b></div>
+      </div>
+      ${s.match_score!=null?`<div class="shoe-match"><div class="shoe-match-num">${s.match_score}</div><div class="shoe-match-lbl">適合度</div></div>`:''}
+    </div>
+    <div class="shoe-why">${s.why||''}</div>
+    ${feats?`<div class="shoe-feats">${feats}</div>`:''}
+    ${s.best_for?`<div class="shoe-best">こんな人に: <b>${s.best_for}</b></div>`:''}
+    <div class="shoe-buy">
+      <a class="buy-btn buy-amazon" href="${amazonLink(q)}" target="_blank" rel="noopener nofollow">Amazonで探す</a>
+      <a class="buy-btn buy-rakuten" href="${rakutenLink(q)}" target="_blank" rel="noopener nofollow">楽天で探す</a>
+    </div>
+  </div>`;
+}
+
 function sciHTML(r){
   if(!r||!r.scientific_basis)return '';
   return `<div class="card"><div class="section-title">🧪 この診断の科学的根拠</div>
@@ -925,22 +991,23 @@ const RESULT_RENDERERS = {
   // ── シューズ ──
   shoes(r){
     const prof=(r.priority_profile||[]).map(p=>`<div class="plan-item"><div class="plan-num">${p.priority}</div><div class="plan-text"><b>${p.feature}</b> ${stars(p.score)}<br><small style="color:var(--muted)">${p.reason||''}</small></div></div>`).join('');
-    const bt=r.budget_tiers||{};
+    const top=r.top_pick;
+    const alts=(r.alternatives||[]).map(s=>shoeCard(s,false)).join('');
     return `
     <div class="result-hero">
       <div style="font-size:13px;color:#aac4e0">あなたのシューズタイプ</div>
-      <div class="big-score" style="font-size:32px;margin:10px 0">${r.shoe_type||''}</div>
+      <div class="big-score" style="font-size:30px;margin:10px 0">${r.shoe_type||''}</div>
     </div>
-    <div class="card"><div class="section-title">🏃 あなたの動きパターン</div><div style="font-size:14px;line-height:1.8">${r.your_movement_pattern||''}</div></div>
-    <div class="card"><div class="section-title">📊 性能の優先順位</div>${prof}</div>
-    <div class="card"><div class="section-title">⭐ 推奨される特性</div><div class="box box-good">${r.recommended_features||''}</div></div>
+    <div class="card"><div class="section-title">👣 あなたの足プロフィール</div><div style="font-size:14px;line-height:1.8">${r.your_foot_profile||''}</div></div>
+    ${top?`<div class="card" style="border:2px solid var(--accent);background:linear-gradient(135deg,#fff,#fffdf5)"><div class="section-title" style="border-bottom-color:var(--accent)">👑 あなたへのイチオシ</div>${shoeCard(top,true)}</div>`:''}
+    ${alts?`<div class="card"><div class="section-title">🥈 他の有力候補</div>${alts}</div>`:''}
+    <div class="card"><div class="section-title">📏 サイズ選びの助言</div><div class="box box-warn">${r.sizing_advice||''}</div></div>
+    <div class="card"><div class="section-title">📊 あなたが重視すべき性能</div>${prof}</div>
+    <div class="card"><div class="section-title">🎬 レビュアーのワンポイント</div><div class="box box-good">${r.reviewer_tip||''}</div></div>
+    <div class="card"><div class="section-title">👟 試着・フィッティング</div><div style="font-size:14px;line-height:1.8">${r.fit_advice||''}</div></div>
     <div class="card"><div class="section-title">🚫 避けるべき特性</div>${list(r.what_to_avoid,'🚫')}</div>
-    <div class="card"><div class="section-title">📏 フィッティング</div><div style="font-size:14px;line-height:1.8">${r.fit_advice||''}</div></div>
     <div class="card"><div class="section-title">🔄 交換の目安</div><div class="box box-info">${r.replacement_timing||''}</div></div>
-    <div class="card"><div class="section-title">🏟️ 床タイプの注意</div><div style="font-size:14px;line-height:1.8">${r.floor_type_note||''}</div></div>
-    <div class="card"><div class="section-title">💰 価格帯の選び方</div>
-      <div class="box box-info" style="margin-bottom:10px"><b>スタンダード:</b> ${bt.standard||''}</div>
-      <div class="box box-good"><b>プレミアム:</b> ${bt.premium||''}</div></div>`;
+    <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6;margin:4px 2px">※ 購入リンクはAmazon・楽天の検索結果に移動します。価格・在庫・最新モデルは各サイトでご確認ください。<br>当サイトはアフィリエイトプログラムにより収益を得ています。</div>`;
   },
 
   // ── 競技タイプ ──
